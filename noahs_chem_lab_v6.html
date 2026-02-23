@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noah's Chem Lab</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap');
+:root{
+  --bg:#080b10;--surface:#0f1219;--surface2:#161b25;--border:#1e2535;--border2:#2a3348;
+  --text:#dedad2;--muted:#7a7870;--faint:#2a2d3a;
+  --ldf:#38bdf8;--ldf-bg:#061824;--ldf-b:#0e3a58;
+  --dp:#fb923c;--dp-bg:#1c1000;--dp-b:#5a2e00;
+  --hb:#f87171;--hb-bg:#1c0808;--hb-b:#5a1818;
+  --green:#4ade80;--red:#f87171;--gold:#fbbf24;--purple:#c084fc;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* NAV */
+.nav{display:flex;align-items:stretch;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:200;overflow-x:auto}
+.nav::-webkit-scrollbar{height:0}
+.nav-brand{font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;color:var(--text);padding:0 18px;border-right:1px solid var(--border);white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.tab{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:0 13px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;height:46px;flex-shrink:0;text-decoration:none}
+.tab:hover{color:var(--text)}.tab.active{color:var(--text);border-bottom-color:var(--text)}
+
+/* PAGES */
+.page{display:none;padding:32px 24px 100px;max-width:980px;margin:0 auto}.page.active{display:block}
+#page-home{max-width:1060px;padding:0 20px 80px}
+
+/* SECTION HEADERS */
+.sec-hd{display:flex;align-items:center;gap:14px;padding:32px 0 18px}
+.sec-hd .sec-title{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;letter-spacing:-.02em}
+.sec-hd .sec-line{flex:1;height:1px;background:var(--border)}
+.sec-hd .sec-tag{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--muted);border:1px solid var(--border2);padding:3px 8px;border-radius:2px;text-transform:uppercase;letter-spacing:.08em}
+
+/* HERO */
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;padding:24px 0 0}
+.hero-panel{background:linear-gradient(150deg,#0d1420 0%,#080d18 100%);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;overflow:hidden}
+.hero-panel::before{content:"";position:absolute;top:-60px;right:-60px;width:260px;height:260px;background:radial-gradient(circle,rgba(192,132,252,.12),transparent 70%);pointer-events:none}
+.hero-panel::after{content:"";position:absolute;bottom:-40px;left:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(56,189,248,.08),transparent 70%);pointer-events:none}
+.hero-eyebrow{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--purple);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:"";width:20px;height:1px;background:var(--purple)}
+.hero-title{font-family:'Syne',sans-serif;font-size:2.4rem;line-height:1.0;letter-spacing:-.04em;margin-bottom:14px;color:#f0ece4}
+.hero-title span{background:linear-gradient(135deg,var(--ldf),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{color:#8a887f;font-size:.88rem;line-height:1.75;max-width:44ch;margin-bottom:20px}
+.hero-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.h-pill{font-family:'Space Mono',monospace;font-size:.58rem;color:#a0a098;border:1px solid var(--border2);background:rgba(255,255,255,.02);padding:5px 10px;border-radius:999px;display:flex;align-items:center;gap:5px}
+.h-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.6}
+.h-pill.lp::before{color:var(--ldf)}
+.h-pill.dp::before{color:var(--dp)}
+.h-pill.hb::before{color:var(--hb)}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap}
+.hero-cta .btn-main{background:linear-gradient(135deg,var(--ldf),#0284c7);color:#fff;border:none;padding:11px 22px;border-radius:999px;font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s;font-weight:700}
+.hero-cta .btn-main:hover{opacity:.85;transform:translateY(-1px)}
+.hero-cta .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border2);padding:11px 22px;border-radius:999px;font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.hero-cta .btn-ghost:hover{color:var(--text);border-color:var(--border)}
+.hero-model{background:radial-gradient(ellipse at 60% 10%,rgba(192,132,252,.1),transparent 55%),#0a0e16;border:1px solid var(--border);border-radius:16px;display:flex;flex-direction:column;overflow:hidden;min-height:320px}
+.hero-model-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.hero-canvas-wrap{flex:1;min-height:230px;position:relative}
+#home-hero-canvas{width:100%;height:100%;display:block}
+.hero-model-foot{padding:10px 16px;border-top:1px solid var(--border);font-size:.72rem;color:#7a7870;display:flex;justify-content:space-between;align-items:center}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.kpi{background:#0c1018;border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;cursor:default;transition:border-color .2s}
+.kpi:hover{border-color:var(--border2)}
+.kpi-lbl{font-family:'Space Mono',monospace;color:var(--muted);font-size:.54rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.kpi-val{font-weight:700;font-size:.95rem;line-height:1.3;color:var(--text)}
+.kpi-sub{font-size:.7rem;color:var(--muted);margin-top:3px}
+.kpi-bar{height:2px;width:100%;margin-top:10px;border-radius:1px;background:var(--border);overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:1px;background:linear-gradient(90deg,var(--ldf),var(--purple))}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:0}
+.card-head{background:var(--surface2);padding:13px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.card-head h3{font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem}
+.card-body{padding:18px}
+.tag{font-family:'Space Mono',monospace;font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted)}
+.badge{font-family:'Space Mono',monospace;font-size:.56rem;padding:2px 7px;border-radius:2px;letter-spacing:.04em}
+.b-ldf{background:var(--ldf-bg);color:var(--ldf);border:1px solid var(--ldf-b)}
+.b-dp{background:var(--dp-bg);color:var(--dp);border:1px solid var(--dp-b)}
+.b-hb{background:var(--hb-bg);color:var(--hb);border:1px solid var(--hb-b)}
+
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* MAIN CHART */
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px 44px 58px;position:relative}
+svg.main{overflow:visible;display:block;width:100%}
+.axis-lbl{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;fill:#a0a098}
+.tick-lbl{font-family:'Space Mono',monospace;font-size:9.5px;fill:#4a4d5a}
+.gridl{stroke:#131620;stroke-width:1}.axl{stroke:#252a38;stroke-width:1.5}
+.dot{cursor:pointer;transition:r .18s,filter .18s,opacity .2s}
+.dot:hover{filter:brightness(1.5) drop-shadow(0 0 8px currentColor)}
+.dot.dim{opacity:.06;pointer-events:none}
+.clab{font-family:'Space Mono',monospace;font-size:8.5px;fill:#7a7870;pointer-events:none;transition:opacity .2s}
+.clab.dim{opacity:.04}
+.tl{stroke-width:2;stroke-dasharray:6 4;pointer-events:none;transition:opacity .25s}
+.tl.dim{opacity:.05}
+.r2l{font-family:'Space Mono',monospace;font-size:9px;transition:opacity .25s}
+.r2l.dim{opacity:.05}
+.chart-legend{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.chart-legend-item{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:4px;border:1px solid transparent;transition:all .15s}
+.chart-legend-item:hover{border-color:var(--border2);color:var(--text)}
+.legend-dot{width:10px;height:10px;border-radius:50%;border-width:2px;border-style:solid;flex-shrink:0}
+.legend-dash{width:18px;border-top-width:2px;border-top-style:dashed;flex-shrink:0}
+
+/* TOOLTIP */
+.tt{position:fixed;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:13px 16px;font-size:.7rem;pointer-events:none;opacity:0;transition:opacity .12s;z-index:500;min-width:200px;box-shadow:0 16px 48px rgba(0,0,0,.8);line-height:1.9}
+.tt.vis{opacity:1}
+.tt-name{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:800;color:var(--text);display:block;margin-bottom:6px}
+.tt-row{display:flex;justify-content:space-between;gap:16px}
+.tt-key{color:var(--muted)}.tt-val{color:var(--text);font-family:'Space Mono',monospace;font-size:.65rem;font-weight:700}
+.tt-exp{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:#a0a098;font-size:.66rem;line-height:1.6;max-width:215px}
+
+/* FILTER BUTTONS */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.btn{font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.07em;text-transform:uppercase;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);padding:7px 12px;border-radius:3px;cursor:pointer;transition:all .15s}
+.btn:hover,.btn.active{color:var(--text);border-color:var(--border2);background:#1e263a}
+.btn.ldf.active{border-color:var(--ldf);color:var(--ldf)}
+.btn.dp.active{border-color:var(--dp);color:var(--dp)}
+.btn.hb.active{border-color:var(--hb);color:var(--hb)}
+
+/* STATS BARS */
+.bar-wrap{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:flex;align-items:center;gap:12px}
+.bar-label{font-family:'Space Mono',monospace;font-size:.62rem;width:100px;flex-shrink:0;text-align:right;color:var(--muted)}
+.bar-track{flex:1;background:var(--surface2);border-radius:2px;height:26px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;display:flex;align-items:center;padding:0 10px;font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;color:rgba(0,0,0,.8);transition:width .8s cubic-bezier(.4,0,.2,1);min-width:4px}
+
+/* STAT CARDS */
+.stat-card{border:1px solid;border-radius:8px;padding:14px 16px}
+.stat-title{font-family:'Syne',sans-serif;font-weight:800;font-size:.85rem;margin-bottom:6px}
+.stat-val{font-family:'Space Mono',monospace;font-size:.7rem;margin-bottom:8px;opacity:.8}
+.stat-interp{font-size:.76rem;line-height:1.65}
+
+/* IMF CARDS */
+.imf-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.imf-panel{border:1px solid;border-radius:10px;overflow:hidden}
+.imf-panel-head{padding:14px 16px;border-bottom:1px solid;display:flex;align-items:center;gap:10px}
+.imf-panel-icon{font-size:1.4rem}
+.imf-panel-title{font-family:'Syne',sans-serif;font-weight:800;font-size:.88rem}
+.imf-panel-sub{font-size:.65rem;font-family:'Space Mono',monospace;opacity:.65;margin-top:1px}
+.imf-panel-body{padding:14px 16px;font-size:.78rem;line-height:1.7}
+.imf-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.chip{font-family:'Space Mono',monospace;font-size:.6rem;padding:2px 8px;border-radius:2px}
+.chip-ldf{background:var(--ldf-bg);color:var(--ldf);border:1px solid var(--ldf-b)}
+.chip-dp{background:var(--dp-bg);color:var(--dp);border:1px solid var(--dp-b)}
+.chip-hb{background:var(--hb-bg);color:var(--hb);border:1px solid var(--hb-b)}
+
+/* 3D MOLECULE VIEWER */
+.mol-grid-home{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.mol-card-home{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .2s}
+.mol-card-home:hover{border-color:var(--border);transform:translateY(-2px)}
+.mol-card-home.selected{border-color:#4a6a9a}
+.mol-canvas-wrap-home{height:120px;position:relative;background:var(--bg)}
+canvas.molch{display:block;width:100%!important;height:100%!important}
+.mol-card-info{padding:9px 10px}
+.mol-card-name{font-family:'Syne',sans-serif;font-weight:800;font-size:.78rem;margin-bottom:2px}
+.mol-card-formula{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted)}
+.mol-detail-home{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px;margin-top:12px}
+
+/* BIG IDEA CHAIN */
+.chain-row{display:flex;align-items:center;gap:0;flex-wrap:nowrap;overflow-x:auto}
+.chain-node{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:16px 18px;text-align:center;flex:1;min-width:140px}
+.chain-node .cn-icon{font-size:1.6rem;margin-bottom:6px}
+.chain-node .cn-title{font-family:'Syne',sans-serif;font-weight:800;font-size:.82rem;margin-bottom:3px}
+.chain-node .cn-sub{font-size:.68rem;color:var(--muted);line-height:1.5}
+.chain-arrow-h{color:var(--faint);font-size:1.4rem;padding:0 8px;flex-shrink:0}
+
+/* CER */
+.cer-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.cer-block{border:1px solid var(--border2);border-radius:8px;overflow:hidden}
+.cer-lbl{font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--surface2);color:var(--muted)}
+.cer-body{padding:14px;font-size:.78rem;line-height:1.7;color:#b8b5ae}
+
+/* QUIZ */
+.qp-bar{display:flex;gap:4px;margin-bottom:18px;flex-wrap:wrap}
+.qp-dot{width:8px;height:8px;border-radius:50%;background:var(--faint);transition:background .3s;flex-shrink:0}
+.qp-dot.correct{background:var(--green)}.qp-dot.wrong{background:var(--red)}.qp-dot.cur{background:var(--text)}
+.quiz-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;transition:border-color .3s}
+.quiz-card.ok{border-color:var(--green)}.quiz-card.bad{border-color:var(--red)}
+.qch{background:var(--surface2);padding:11px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+.qnum{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted)}
+.qbody{padding:18px 20px}
+.qtext{font-size:.9rem;line-height:1.65;color:var(--text);margin-bottom:16px;font-weight:500}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:12px;padding:10px 13px;border:1px solid var(--border2);border-radius:6px;cursor:pointer;transition:all .15s;font-size:.82rem;color:#b0aead;background:var(--surface2)}
+.opt:hover:not(.locked){border-color:#3a4a6a;background:#1a2030;color:var(--text)}
+.opt.sel{border-color:#3a5a8a;background:#121a2a;color:var(--text)}
+.opt.ok2{border-color:var(--green);background:#0a1a0a;color:var(--green)}
+.opt.bad2{border-color:var(--red);background:#1a0a0a;color:var(--red)}
+.opt.reveal{border-color:#1a4a1a;background:#0a1a0a;color:#5a9a5a;opacity:.7}
+.opt-letter{font-family:'Space Mono',monospace;font-size:.62rem;width:20px;height:20px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fill-in{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:5px;padding:10px 13px;font-family:'Space Mono',monospace;font-size:.8rem;color:var(--text);outline:none}
+.fill-in.ok{border-color:var(--green);background:#0a1a0a;color:var(--green)}
+.fill-in.bad{border-color:var(--red);background:#1a0a0a;color:var(--red)}
+.fb{margin-top:12px;padding:10px 14px;border-radius:5px;font-size:.76rem;line-height:1.65;display:none}
+.fb.vis{display:block}.fb.good{background:#0a1a0a;border:1px solid #1a4a1a;color:#80c080}.fb.bad2{background:#1a0a0a;border:1px solid #4a1a1a;color:#c08080}
+.qa-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.qbtn{font-family:'Space Mono',monospace;font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;padding:8px 14px;border-radius:4px;cursor:pointer;transition:all .15s;border:1px solid}
+.qbtn.primary{background:#141c2e;border-color:#3a5a8a;color:var(--text)}.qbtn.primary:hover{background:#1a2436}
+.qbtn.sec{background:transparent;border-color:var(--border2);color:var(--muted)}.qbtn.sec:hover{color:var(--text)}
+.timer-bar{height:3px;background:var(--surface2);border-radius:2px;margin-bottom:14px;overflow:hidden}
+.timer-fill{height:100%;background:var(--green);transition:width .5s linear,background .5s;border-radius:2px}
+.score-box{text-align:center;padding:40px 24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:none}
+.score-box.vis{display:block}
+.score-big{font-family:'Syne',sans-serif;font-size:3.5rem;font-weight:800;margin-bottom:4px}
+.score-sub{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px}
+.score-msg{font-size:.87rem;color:#b0aead;margin-bottom:20px;line-height:1.65}
+.breakdown{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.bk-item{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:8px 14px;font-size:.72rem;text-align:center}
+.bk-sec{font-family:'Space Mono',monospace;font-size:.56rem;color:var(--muted);margin-bottom:3px}.bk-val{font-weight:700;font-family:'Syne',sans-serif;font-size:1rem}
+.qsec-badge{font-family:'Space Mono',monospace;font-size:.54rem;padding:2px 7px;border-radius:2px}
+.qdiff{font-family:'Space Mono',monospace;font-size:.54rem;color:var(--muted)}
+
+/* POLARITY TOOL */
+.flow-wrap{}
+.flow-q{background:var(--surface2);border:2px solid var(--border2);border-radius:10px;padding:16px 20px;text-align:center;margin-bottom:10px}
+.fq-label{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.fq-text{font-size:.9rem;font-weight:500;line-height:1.5}
+.flow-opts{display:flex;gap:8px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+.flow-opt{padding:7px 18px;border-radius:6px;border:1px solid var(--border2);cursor:pointer;font-size:.8rem;transition:all .15s;background:var(--surface2)}
+.flow-opt:hover{border-color:#4a5a80;background:#1e263a;color:var(--text)}
+.flow-opt.chosen-yes{border-color:var(--green);background:#102010;color:var(--green)}
+.flow-opt.chosen-no{border-color:var(--red);background:#201010;color:var(--red)}
+.flow-arrow{text-align:center;color:var(--faint);font-size:1.1rem;margin-bottom:6px}
+.flow-result{border-radius:8px;padding:18px;text-align:center;margin-top:6px}
+.fr-label{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:5px}
+.fr-sub{font-size:.8rem;line-height:1.6;opacity:.8}
+
+/* REAL WORLD */
+.rw-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.rw-card{border:1px solid var(--border2);border-radius:8px;padding:14px;background:var(--surface2)}
+.rw-icon{font-size:1.6rem;margin-bottom:6px}
+.rw-title{font-family:'Syne',sans-serif;font-weight:800;font-size:.82rem;margin-bottom:5px}
+.rw-body{font-size:.74rem;line-height:1.65;color:#a8a6a0}
+
+/* STUDY SHEET */
+.sheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.sheet-card{border:1px solid var(--border2);border-radius:8px;overflow:hidden}
+.sheet-head{padding:9px 14px;font-family:'Syne',sans-serif;font-weight:800;font-size:.8rem}
+.sheet-body{padding:12px 14px;font-size:.73rem;line-height:1.75}
+.sheet-table{width:100%;border-collapse:collapse;font-size:.68rem}
+.sheet-table th{font-family:'Space Mono',monospace;font-size:.54rem;letter-spacing:.06em;padding:4px 7px;text-align:left;border-bottom:1px solid var(--border)}
+.sheet-table td{padding:4px 7px;border-bottom:1px solid rgba(30,37,53,.5)}
+
+/* SIMULATOR */
+.sim-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sim-control{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:16px}
+.sim-lbl{font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}
+.sim-select{width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-family:'Space Mono',monospace;font-size:.72rem;padding:8px 10px;border-radius:4px;margin-bottom:12px;outline:none}
+.sim-slider{width:100%;accent-color:var(--ldf);margin-bottom:5px}
+.sim-result{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.sim-speed-num{font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;text-align:center}
+.sim-tube{background:var(--bg);border:1px solid var(--border2);border-radius:4px;height:160px;position:relative;overflow:hidden;margin:4px 0}
+.sim-liquid{position:absolute;top:0;left:0;right:0;bottom:0;transition:background .5s}
+.sim-bubble{position:absolute;left:50%;transform:translateX(-50%);border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.1)}
+.sim-explain{font-size:.74rem;line-height:1.65;color:#a0a098;border-top:1px solid var(--border);padding-top:10px}
+
+/* ERROR ANALYSIS */
+.err-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.err-card{border:1px solid var(--border2);border-radius:6px;padding:13px 14px;background:var(--surface2)}
+.err-icon{font-size:1.3rem;margin-bottom:6px}
+.err-title{font-family:'Syne',sans-serif;font-weight:800;font-size:.82rem;margin-bottom:5px}
+.err-body{font-size:.74rem;line-height:1.65;color:#a8a6a0}
+
+/* DATA TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:.76rem}
+.data-table th{text-align:left;padding:8px 10px;font-family:'Space Mono',monospace;font-size:.56rem;letter-spacing:.07em;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border);text-transform:uppercase}
+.data-table td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(255,255,255,.015)}
+
+/* SECTION ANCHORS */
+.home-section{margin-bottom:8px}
+
+/* COLLAPSIBLE */
+.collapsible-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.collapsible-header .caret{font-size:.8rem;color:var(--muted);transition:transform .2s}
+.collapsible-header.open .caret{transform:rotate(180deg)}
+.collapsible-body{overflow:hidden;transition:max-height .35s ease;max-height:0}
+.collapsible-body.open{max-height:9999px}
+
+/* RESPONSIVE */
+@media(max-width:860px){
+  .hero{grid-template-columns:1fr}
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  .imf-trio,.cer-grid,.grid-2,.grid-3,.grid-4,.rw-grid{grid-template-columns:1fr}
+  .mol-grid-home{grid-template-columns:repeat(2,1fr)}
+  .sheet-grid{grid-template-columns:1fr}
+  .chain-row{flex-direction:column;align-items:stretch}
+  .chain-arrow-h{transform:rotate(90deg);text-align:center}
+  .err-grid{grid-template-columns:repeat(2,1fr)}
+  .sim-wrap{grid-template-columns:1fr}
+  .hero-title{font-size:1.75rem}
+}
+@media(max-width:540px){
+  .kpi-strip{grid-template-columns:1fr}
+  .err-grid{grid-template-columns:1fr}
+  .mol-grid-home{grid-template-columns:1fr 1fr}
+}
+
+/* non-home pages */
+.ph{margin-bottom:24px}.ph h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+.ph p{color:var(--muted);font-size:.83rem;line-height:1.65}
+.imf-sec{margin-bottom:24px}
+.imf-hd{display:flex;align-items:center;gap:12px;padding:13px 16px;border-radius:6px 6px 0 0;border:1px solid;border-bottom:none}
+.imf-hd-icon{font-size:1.3rem}
+.imf-hd-title{font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem}
+.imf-hd-sub{font-size:.65rem;font-family:'Space Mono',monospace;letter-spacing:.05em;opacity:.7}
+.imf-bd{border:1px solid;border-top:none;border-radius:0 0 6px 6px;padding:16px 18px;line-height:1.75;font-size:.84rem}
+.imf-bd p{margin-bottom:10px}.imf-bd p:last-child{margin-bottom:0}
+.chips-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.fact-box{margin-top:12px;padding:8px 13px;border-radius:4px;border-left:3px solid;font-size:.73rem;line-height:1.6}
+.mol-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.mol-card{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.mol-card.selected{border-color:#5a7aaa}
+.mol-canvas-wrap{height:150px;position:relative;background:var(--bg)}
+canvas.molc{display:block;width:100%!important;height:100%!important}
+.mol-info{padding:10px 12px}
+.mol-name{font-family:'Syne',sans-serif;font-weight:800;font-size:.88rem;margin-bottom:2px}
+.mol-formula{font-family:'Space Mono',monospace;font-size:.66rem;color:var(--muted);margin-bottom:5px}
+.mol-tags{display:flex;gap:5px;flex-wrap:wrap}
+.mol-detail{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px;margin-top:4px}
+.mol-detail h3{font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;margin-bottom:10px}
+.mol-props{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px}
+.mol-prop{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:9px 11px;font-size:.78rem}
+.mol-prop .mpk{color:var(--muted);font-size:.62rem;font-family:'Space Mono',monospace;letter-spacing:.06em;display:block;margin-bottom:2px}
+.mol-prop .mpv{color:var(--text);font-weight:500}
+.flow-wrap2{max-width:560px;margin:0 auto}
+.rw-grid-full{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.chain{display:flex;flex-direction:column;gap:0;max-width:560px;margin:0 auto 28px}
+.chain-item{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:18px 22px;text-align:center}
+.chain-icon{font-size:1.8rem;margin-bottom:6px}
+.chain-title{font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;margin-bottom:4px}
+.chain-sub{font-size:.78rem;color:var(--muted);line-height:1.55}
+.chain-arrow{text-align:center;padding:6px 0;font-size:1.3rem;color:var(--faint)}
+.big-quote{background:var(--surface2);border:1px solid var(--border2);border-left:3px solid var(--text);border-radius:0 8px 8px 0;padding:18px 22px;margin:20px 0;font-size:.95rem;line-height:1.7;font-style:italic;color:#c8c6c0}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">🧪 Noah's Chem Lab</div>
+  <a class="tab active" href="#home-top">🏠 Home</a>
+  <a class="tab" href="#section-chart">📈 Chart</a>
+  <a class="tab" href="#section-molecules">🔬 Molecules</a>
+  <a class="tab" href="#section-chemistry">⚗️ Chemistry</a>
+  <a class="tab" href="#section-cer">📝 CER</a>
+  <a class="tab" href="#section-quiz">🧠 Quiz</a>
+  <a class="tab" href="#section-polarity">🔀 Polarity</a>
+  <a class="tab" href="#section-simulator">⚡ Simulator</a>
+  <a class="tab" href="#section-error">🧪 Errors</a>
+  <a class="tab" href="#section-realworld">🌍 Real World</a>
+  <a class="tab" href="#section-bigidea">🏆 Big Idea</a>
+  <a class="tab" href="#section-study">📖 Study Sheet</a>
+</nav>
+
+<div class="tt" id="tt"></div>
+
+<div id="page-home">
+
+<!-- ===== HERO ===== -->
+<div id="home-top"></div>
+<div class="hero">
+  <div class="hero-panel">
+    <div class="hero-eyebrow">Unit 9 · Glass Tubes Lab · IMF &amp; Viscosity</div>
+    <div class="hero-title">Noah's<br><span>Chem Lab</span><br>Studio</div>
+    <div class="hero-sub">All your lab data, 3D molecules, chemistry explanations, quiz, and study tools on one page. Everything you need to master IMF and viscosity.</div>
+    <div class="hero-pills">
+      <span class="h-pill lp">LDF · 3 chemicals</span>
+      <span class="h-pill dp">Dipole–Dipole · 3 chemicals</span>
+      <span class="h-pill hb">H-Bonding · 3 chemicals</span>
+    </div>
+    <div class="hero-cta">
+      <button class="btn-main" onclick="document.getElementById('section-quiz').scrollIntoView({behavior:'smooth'})">🧠 Take the Quiz</button>
+      <button class="btn-ghost" onclick="document.getElementById('section-study').scrollIntoView({behavior:'smooth'})">📖 Study Sheet</button>
+    </div>
+  </div>
+  <div class="hero-model">
+    <div class="hero-model-head">
+      <strong style="font-size:.8rem;font-family:'Syne',sans-serif">Featured Molecule</strong>
+      <span class="badge b-hb">H-Bonding</span>
+    </div>
+    <div class="hero-canvas-wrap"><canvas id="home-hero-canvas"></canvas></div>
+    <div class="hero-model-foot"><span>Butanol (C₄H₁₀O)</span><span style="font-size:.65rem">Drag to rotate</span></div>
+  </div>
+</div>
+
+<!-- KPI STRIP -->
+<div class="kpi-strip">
+  <div class="kpi">
+    <div class="kpi-lbl">Fastest Chemical</div>
+    <div class="kpi-val" style="color:var(--ldf)">Pentane</div>
+    <div class="kpi-sub">0.92 ips · LDF only</div>
+    <div class="kpi-bar"><div class="kpi-bar-fill" style="width:92%;background:var(--ldf)"></div></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Slowest Chemical</div>
+    <div class="kpi-val" style="color:var(--hb)">Pentanol</div>
+    <div class="kpi-sub">0.16 ips · H-Bonding</div>
+    <div class="kpi-bar"><div class="kpi-bar-fill" style="width:16%;background:var(--hb)"></div></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Speed Ratio</div>
+    <div class="kpi-val">5.75×</div>
+    <div class="kpi-sub">Pentane vs Pentanol</div>
+    <div class="kpi-bar"><div class="kpi-bar-fill" style="width:75%"></div></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Chemicals Tested</div>
+    <div class="kpi-val">9</div>
+    <div class="kpi-sub">3 per IMF group</div>
+    <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%"></div></div>
+  </div>
+</div>
+
+<!-- ===== CHART SECTION ===== -->
+<div class="home-section" id="section-chart">
+  <div class="sec-hd">
+    <div class="sec-title">📈 Speed vs. Molar Mass</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">Scatter Plot</div>
+  </div>
+  <div class="btn-row">
+    <button class="btn active" id="cball" onclick="filterChart('all',this)">All</button>
+    <button class="btn ldf" onclick="filterChart('LDF',this)">LDF Only</button>
+    <button class="btn dp" onclick="filterChart('Dipole-Dipole',this)">Dipole–Dipole</button>
+    <button class="btn hb" onclick="filterChart('Hydrogen Bonding',this)">H-Bonding</button>
+  </div>
+  <div class="chart-wrap">
+    <svg class="main" id="chart"></svg>
+  </div>
+  <div class="chart-legend">
+    <div class="chart-legend-item" onclick="filterChart('LDF',document.querySelector('.btn.ldf'))">
+      <div class="legend-dot" style="background:#38bdf8;border-color:#0ea5e9"></div>LDF<div class="legend-dash" style="border-color:#0ea5e9"></div>
+    </div>
+    <div class="chart-legend-item" onclick="filterChart('Dipole-Dipole',document.querySelector('.btn.dp'))">
+      <div class="legend-dot" style="background:#fb923c;border-color:#f97316"></div>Dipole–Dipole<div class="legend-dash" style="border-color:#f97316"></div>
+    </div>
+    <div class="chart-legend-item" onclick="filterChart('Hydrogen Bonding',document.querySelector('.btn.hb'))">
+      <div class="legend-dot" style="background:#f87171;border-color:#ef4444"></div>H-Bonding<div class="legend-dash" style="border-color:#ef4444"></div>
+    </div>
+  </div>
+
+  <!-- Stats below chart -->
+  <div class="grid-3" style="margin-top:16px" id="stat-cards-home"></div>
+
+  <div class="grid-2" style="margin-top:14px">
+    <div class="card">
+      <div class="card-head"><h3>Avg Speed by IMF Group</h3><span class="tag">Bar Chart</span></div>
+      <div class="card-body"><div class="bar-wrap" id="avg-bars-home"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>Bubble Time Ranking</h3><span class="tag">Slowest → Fastest</span></div>
+      <div class="card-body"><div class="bar-wrap" id="time-bars-home"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MOLECULES ===== -->
+<div class="home-section" id="section-molecules">
+  <div class="sec-hd">
+    <div class="sec-title">🔬 3D Molecule Viewer</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">Interactive</div>
+  </div>
+  <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px">Click a molecule to see its properties. Drag to rotate.</p>
+  <div class="mol-grid-home" id="mol-grid-home"></div>
+  <div class="mol-detail-home" id="mol-detail-home"></div>
+</div>
+
+<!-- ===== CHEMISTRY ===== -->
+<div class="home-section" id="section-chemistry">
+  <div class="sec-hd">
+    <div class="sec-title">⚗️ Chemistry Explained</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">IMF Deep Dive</div>
+  </div>
+  <div class="imf-trio">
+    <div class="imf-panel" style="border-color:var(--ldf-b)">
+      <div class="imf-panel-head" style="background:var(--ldf-bg);border-color:var(--ldf-b);color:var(--ldf)">
+        <span class="imf-panel-icon">⚡</span>
+        <div><div class="imf-panel-title">London Dispersion</div><div class="imf-panel-sub">Weakest · All molecules</div></div>
+      </div>
+      <div class="imf-panel-body" style="background:var(--ldf-bg);color:#c0dce8">
+        <p><strong>What:</strong> Temporary attractions from random electron fluctuations creating instant dipoles.</p>
+        <p><strong>Who:</strong> Only IMF in nonpolar alkanes. More electrons = stronger LDF = more viscous.</p>
+        <p><strong>Key rule:</strong> Bigger molar mass → stronger LDF. Pentane (72) at 0.92 ips vs Octane (114) at 0.54 ips.</p>
+        <div class="imf-chips">
+          <span class="chip chip-ldf">Pentane · 0.92 ips</span>
+          <span class="chip chip-ldf">Hexane · 0.55 ips</span>
+          <span class="chip chip-ldf">Octane · 0.54 ips</span>
+        </div>
+      </div>
+    </div>
+    <div class="imf-panel" style="border-color:var(--dp-b)">
+      <div class="imf-panel-head" style="background:var(--dp-bg);border-color:var(--dp-b);color:var(--dp)">
+        <span class="imf-panel-icon">🧲</span>
+        <div><div class="imf-panel-title">Dipole–Dipole</div><div class="imf-panel-sub">Moderate · Polar, no H on O/N/F</div></div>
+      </div>
+      <div class="imf-panel-body" style="background:var(--dp-bg);color:#f0d8b0">
+        <p><strong>What:</strong> Permanent attractions between polar molecules (δ+ end ↔ δ– end of neighbors).</p>
+        <p><strong>Who:</strong> Ketones have C=O group — oxygen pulls electrons creating a net dipole.</p>
+        <p><strong>No H-bond:</strong> Ketones have C=O, not O–H. Hydrogen bonding requires H on O, N, or F.</p>
+        <div class="imf-chips">
+          <span class="chip chip-dp">Butanone · 0.46 ips</span>
+          <span class="chip chip-dp">Pentanone · 0.57 ips</span>
+          <span class="chip chip-dp">Heptanone · 0.33 ips</span>
+        </div>
+      </div>
+    </div>
+    <div class="imf-panel" style="border-color:var(--hb-b)">
+      <div class="imf-panel-head" style="background:var(--hb-bg);border-color:var(--hb-b);color:var(--hb)">
+        <span class="imf-panel-icon">🔗</span>
+        <div><div class="imf-panel-title">Hydrogen Bonding</div><div class="imf-panel-sub">Strongest · H on O, N, or F</div></div>
+      </div>
+      <div class="imf-panel-body" style="background:var(--hb-bg);color:#f0c0c0">
+        <p><strong>What:</strong> Extra-strong dipole–dipole when H is on O, N, or F — H becomes strongly δ+ and bonds to lone pairs.</p>
+        <p><strong>In lab:</strong> Alcohols all have –OH. Pentanol at 0.16 ips vs Pentane at 0.92 ips — nearly 6× slower with similar size.</p>
+        <p><strong>Why strong:</strong> O is extremely electronegative, tiny H gets very close to neighbor's lone pairs.</p>
+        <div class="imf-chips">
+          <span class="chip chip-hb">Butanol · 0.42 ips</span>
+          <span class="chip chip-hb">Pentanol · 0.16 ips</span>
+          <span class="chip chip-hb">Heptanol · 0.36 ips</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CER ===== -->
+<div class="home-section" id="section-cer">
+  <div class="sec-hd">
+    <div class="sec-title">📝 Claim · Evidence · Reasoning</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">Lab Write-Up</div>
+  </div>
+  <div class="cer-grid">
+    <div class="cer-block">
+      <div class="cer-lbl" style="color:var(--ldf)">Claim</div>
+      <div class="cer-body">The stronger the intermolecular forces between molecules, the higher the viscosity and the slower the bubble. H-bonding liquids are slowest, then dipole–dipole, then LDF-only fastest.</div>
+    </div>
+    <div class="cer-block">
+      <div class="cer-lbl" style="color:var(--dp)">Evidence</div>
+      <div class="cer-body">
+        <strong style="color:var(--ldf)">LDF</strong>: Pentane 0.92 ips, Hexane 0.55, Octane 0.54<br>
+        <strong style="color:var(--dp)">Dipole</strong>: Pentanone 0.57 ips, Butanone 0.46, Heptanone 0.33<br>
+        <strong style="color:var(--hb)">H-Bond</strong>: Butanol 0.42 ips, Heptanol 0.36, <strong>Pentanol 0.16</strong> (slowest)<br><br>
+        Pentane vs Pentanol — similar size, 6× speed difference.
+      </div>
+    </div>
+    <div class="cer-block">
+      <div class="cer-lbl" style="color:var(--hb)">Reasoning</div>
+      <div class="cer-body">Viscosity = resistance to flow. Stronger IMF = molecules harder to push apart = slower bubble. LDF (temp. dipoles) → easy to overcome → fast. Dipole (permanent) → moderate. H-bond (H on O) → dense network → very slow. Pentane vs Pentanol isolates IMF as the cause.</div>
+    </div>
+  </div>
+
+  <!-- Full data table -->
+  <div class="card" style="margin-top:14px">
+    <div class="card-head"><h3>Full Lab Data</h3><span class="tag">All 9 Chemicals</span></div>
+    <div class="card-body" style="padding:0">
+      <table class="data-table">
+        <thead><tr><th>Chemical</th><th>Formula</th><th>Molar Mass</th><th>Length</th><th>Time</th><th>Speed (ips)</th><th>IMF</th></tr></thead>
+        <tbody id="cer-table-home"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== QUIZ ===== -->
+<div class="home-section" id="section-quiz">
+  <div class="sec-hd">
+    <div class="sec-title">🧠 Quiz</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">30 Questions · 6 Topics</div>
+  </div>
+  <div class="btn-row" style="gap:6px">
+    <button class="btn active" id="qfa" onclick="setQFilter('all',this)">All (30)</button>
+    <button class="btn" onclick="setQFilter('Lewis',this)">Lewis</button>
+    <button class="btn" onclick="setQFilter('VSEPR',this)">VSEPR</button>
+    <button class="btn" onclick="setQFilter('Bond',this)">Bonds</button>
+    <button class="btn" onclick="setQFilter('Molecular',this)">Mol. Polarity</button>
+    <button class="btn" onclick="setQFilter('IMF',this)">IMF</button>
+    <button class="btn" onclick="setQFilter('Application',this)">Lab App.</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn" id="timed-btn" onclick="toggleTimed()">⏱ Timed: OFF</button>
+    <button class="btn" onclick="showWrong()">🔁 Review Wrong</button>
+    <button class="btn" onclick="resetQuiz()">↺ Reset</button>
+  </div>
+  <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+  <div class="qp-bar" id="qpbar"></div>
+  <div id="qcont"></div>
+  <div class="score-box" id="score-box">
+    <div class="score-big" id="score-big"></div>
+    <div class="score-sub">Final Score</div>
+    <div class="score-msg" id="score-msg"></div>
+    <div class="breakdown" id="breakdown"></div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="qbtn primary" onclick="resetQuiz()">Retake Quiz</button>
+      <button class="qbtn sec" onclick="showWrong()">Review Incorrect</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== POLARITY TOOL ===== -->
+<div class="home-section" id="section-polarity">
+  <div class="sec-hd">
+    <div class="sec-title">🔀 Polarity Decision Tool</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">Interactive Flowchart</div>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <select id="fc-mol-select" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:'Space Mono',monospace;font-size:.72rem;padding:8px 12px;border-radius:4px;flex:1;min-width:160px" onchange="loadMolFlow(this.value)">
+      <option value="">— Pick a molecule —</option>
+      <option value="CO2">CO₂</option><option value="H2O">H₂O</option><option value="NH3">NH₃</option>
+      <option value="BF3">BF₃</option><option value="CH4">CH₄</option><option value="SO2">SO₂</option>
+      <option value="CCl4">CCl₄</option><option value="HF">HF</option><option value="N2">N₂</option>
+    </select>
+    <button class="btn" onclick="resetFlow()">Reset</button>
+  </div>
+  <div class="flow-wrap" id="flow-wrap"></div>
+</div>
+
+<!-- ===== SIMULATOR ===== -->
+<div class="home-section" id="section-simulator">
+  <div class="sec-hd">
+    <div class="sec-title">⚡ Speed Predictor</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">Simulator</div>
+  </div>
+  <div class="sim-wrap">
+    <div class="sim-control">
+      <div class="sim-lbl">Functional Group</div>
+      <select class="sim-select" id="sim-group" onchange="runSim()">
+        <option value="alkane">Alkane (–CH₃) — LDF only</option>
+        <option value="ketone">Ketone (C=O) — Dipole-Dipole</option>
+        <option value="alcohol">Alcohol (–OH) — Hydrogen Bonding</option>
+      </select>
+      <div class="sim-lbl">Carbon Chain: <span id="sim-c-val">5</span> carbons</div>
+      <input type="range" class="sim-slider" id="sim-carbons" min="3" max="10" value="5" oninput="document.getElementById('sim-c-val').textContent=this.value;runSim()" style="margin-bottom:10px">
+      <div class="sim-lbl" style="margin-top:10px">Predicted Molar Mass</div>
+      <div style="font-family:'Space Mono',monospace;font-size:1rem;color:var(--text);margin-bottom:4px" id="sim-mm">—</div>
+      <div class="sim-lbl" style="margin-top:10px">Strongest IMF</div>
+      <div id="sim-imf-badge" style="margin-top:4px"></div>
+    </div>
+    <div class="sim-result">
+      <div><div class="sim-speed-num" id="sim-speed-num">—</div><div style="font-family:'Space Mono',monospace;font-size:.65rem;color:var(--muted);text-align:center">inches per second (predicted)</div></div>
+      <div class="sim-tube" id="sim-tube">
+        <div class="sim-liquid" id="sim-liquid"></div>
+        <div class="sim-bubble" id="sim-bubble" style="width:20px;height:20px;bottom:10px"></div>
+      </div>
+      <div class="sim-explain" id="sim-explain"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="card-head"><h3>Lab Reference Comparison</h3><span class="tag">All Chemicals</span></div>
+    <div class="card-body"><div class="bar-wrap" id="sim-ref-bars"></div></div>
+  </div>
+</div>
+
+<!-- ===== ERROR ANALYSIS ===== -->
+<div class="home-section" id="section-error">
+  <div class="sec-hd">
+    <div class="sec-title">🧪 Error Analysis</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">Experimental</div>
+  </div>
+  <div class="grid-2" style="gap:16px">
+    <div class="card">
+      <div class="card-head"><h3>Sources of Error</h3></div>
+      <div class="card-body"><div class="err-grid" id="err-grid" style="grid-template-columns:1fr 1fr"></div></div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-head"><h3>Heptanol vs Heptanone Anomaly</h3><span class="tag b-hb" style="font-size:.5rem;padding:2px 6px">Outlier</span></div>
+        <div class="card-body" style="font-size:.8rem;line-height:1.75;color:#b0aead">
+          <p>Heptanol (<strong style="color:var(--hb)">0.36 ips</strong>) was slightly <em>faster</em> than Heptanone (<strong style="color:var(--dp)">0.33 ips</strong>) — appears to contradict the H-bonding trend.</p>
+          <ul style="margin:10px 0 0 18px;display:flex;flex-direction:column;gap:6px">
+            <li><strong>Timing:</strong> 1–2 second difference could swap results</li>
+            <li><strong>Tube length:</strong> Heptanol was 9.5 in vs heptanone's 7.75 in</li>
+            <li><strong>Temperature:</strong> Slight warmth reduces viscosity artificially</li>
+            <li><strong>Bubble size:</strong> Larger bubble = more drag regardless of viscosity</li>
+          </ul>
+          <p style="margin-top:10px">Likely a measurement artifact, not a contradiction of IMF theory.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Improvements</h3></div>
+        <div class="card-body"><div class="err-grid" id="improve-grid" style="grid-template-columns:1fr 1fr"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REAL WORLD ===== -->
+<div class="home-section" id="section-realworld">
+  <div class="sec-hd">
+    <div class="sec-title">🌍 Real-World Applications</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">IMF in Life</div>
+  </div>
+  <div class="rw-grid" id="rw-grid"></div>
+</div>
+
+<!-- ===== BIG IDEA ===== -->
+<div class="home-section" id="section-bigidea">
+  <div class="sec-hd">
+    <div class="sec-title">🏆 The Big Idea</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">Chain of Reasoning</div>
+  </div>
+  <div class="chain-row" id="chain-row"></div>
+  <div class="big-quote" style="margin-top:20px">"Molecular structure determines polarity. Polarity determines intermolecular forces. Intermolecular forces determine physical properties like viscosity, boiling point, and surface tension. To understand why chemicals behave the way they do, you must follow this chain."</div>
+  <div class="imf-trio" style="margin-top:14px">
+    <div style="background:var(--ldf-bg);border:1px solid var(--ldf-b);border-radius:8px;padding:16px;font-size:.8rem;line-height:1.75;color:#c0dce8">
+      <strong style="color:var(--ldf)">Pentane</strong><br>
+      Tetrahedral-like chain → nonpolar (symmetric C–H) → only LDF → low viscosity → <strong style="color:var(--ldf)">0.92 ips</strong>
+    </div>
+    <div style="background:var(--dp-bg);border:1px solid var(--dp-b);border-radius:8px;padding:16px;font-size:.8rem;line-height:1.75;color:#f0d8b0">
+      <strong style="color:var(--dp)">Butanone</strong><br>
+      C=O group → polar molecule (asymmetric) → dipole–dipole → moderate viscosity → <strong style="color:var(--dp)">0.46 ips</strong>
+    </div>
+    <div style="background:var(--hb-bg);border:1px solid var(--hb-b);border-radius:8px;padding:16px;font-size:.8rem;line-height:1.75;color:#f0c0c0">
+      <strong style="color:var(--hb)">Pentanol</strong><br>
+      –OH group → polar + H on O → hydrogen bonding → high viscosity → <strong style="color:var(--hb)">0.16 ips</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STUDY SHEET ===== -->
+<div class="home-section" id="section-study">
+  <div class="sec-hd">
+    <div class="sec-title">📖 One-Page Study Sheet</div>
+    <div class="sec-line"></div>
+    <div class="sec-tag">Test Prep</div>
+  </div>
+  <div class="sheet-grid" id="sheet-grid"></div>
+</div>
+
+</div><!-- /page-home -->
+
+<script>
+// ===================== DATA =====================
+const chemicals=[
+  {name:"Pentane",  formula:"C₅H₁₂",  speed:0.92,molar:72.15, imf:"LDF",             t:6.5,  len:6,    polar:false,
+   why:"Pentane is a nonpolar alkane — symmetric C–H bonds, no electronegative attachments. Only LDF between molecules. Small molar mass = weak LDF = fastest bubble (0.92 ips)."},
+  {name:"Hexane",   formula:"C₆H₁₄",  speed:0.55,molar:86.18, imf:"LDF",             t:13.56,len:7.5,  polar:false,
+   why:"Hexane has 6 carbons = more electrons than pentane = slightly stronger LDF. Still only LDF though, so it flows freely at 0.55 ips."},
+  {name:"Octane",   formula:"C₈H₁₈",  speed:0.54,molar:114.23,imf:"LDF",             t:14.95,len:8,    polar:false,
+   why:"Octane's 8 carbons give it the largest molar mass of the LDF group (114 g/mol). More electrons = stronger LDF = slowest in the LDF group at 0.54 ips."},
+  {name:"Butanone", formula:"C₄H₈O",  speed:0.46,molar:72.11, imf:"Dipole-Dipole",   t:16,   len:7.5,  polar:true,
+   why:"Butanone has a C=O group — oxygen pulls electrons toward itself, creating a permanent dipole. Dipole–dipole forces are stronger than LDF alone. No O–H means no H-bonding. Speed: 0.46 ips."},
+  {name:"Pentanone",formula:"C₅H₁₀O", speed:0.57,molar:86.13, imf:"Dipole-Dipole",   t:14.15,len:8,    polar:true,
+   why:"Pentanone (C=O ketone) has dipole–dipole plus slightly stronger LDF than butanone. Its speed (0.57 ips) is close to hexane's since molar masses are nearly identical."},
+  {name:"Heptanone",formula:"C₇H₁₄O", speed:0.33,molar:114.19,imf:"Dipole-Dipole",   t:23,   len:7.75, polar:true,
+   why:"Largest ketone. High molar mass gives strong LDF + dipole–dipole from C=O. Speed: 0.33 ips."},
+  {name:"Butanol",  formula:"C₄H₁₀O", speed:0.42,molar:74.12, imf:"Hydrogen Bonding",t:19,   len:8,    polar:true,
+   why:"Butanol has –OH: H bonded directly to O. Forms hydrogen bonds with neighbors — much stronger than dipole–dipole. Even this small alcohol (74 g/mol) is slower than larger LDF-only molecules. 0.42 ips."},
+  {name:"Pentanol", formula:"C₅H₁₂O", speed:0.16,molar:88.15, imf:"Hydrogen Bonding",t:49,   len:8,    polar:true,
+   why:"Slowest of all at 0.16 ips. –OH group creates a dense hydrogen bonding network. Compare to pentane (same size, 0.92 ips) — 6× slower from H-bonding alone."},
+  {name:"Heptanol", formula:"C₇H₁₆O", speed:0.36,molar:116.20,imf:"Hydrogen Bonding",t:26,   len:9.5,  polar:true,
+   why:"Largest alcohol: H-bonding from –OH + strong LDF from 7-carbon chain. Combined effect makes it viscous at 0.36 ips. Slightly faster than heptanone — likely due to measurement variation."},
+];
+
+const imfCfg={
+  "LDF":              {fill:"#38bdf8",stroke:"#0ea5e9",badge:"b-ldf",label:"LDF",          cls:"ldf"},
+  "Dipole-Dipole":    {fill:"#fb923c",stroke:"#f97316",badge:"b-dp", label:"Dipole–Dipole",cls:"dp"},
+  "Hydrogen Bonding": {fill:"#f87171",stroke:"#ef4444",badge:"b-hb", label:"H-Bonding",   cls:"hb"},
+};
+const imfGroups=["LDF","Dipole-Dipole","Hydrogen Bonding"];
+
+// ===================== CHART =====================
+(function(){
+  const W=700,H=380,pL=58,pR=24,pT=20,pB=54;
+  const pw=W-pL-pR,ph=H-pT-pB;
+  const xMin=65,xMax=122,yMin=0,yMax=1.0;
+  const xs=v=>pL+((v-xMin)/(xMax-xMin))*pw;
+  const ys=v=>pT+ph-((v-yMin)/(yMax-yMin))*ph;
+  const svg=document.getElementById('chart');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const ns='http://www.w3.org/2000/svg';
+  const mk=(tag,attrs,p)=>{const e=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(p)p.appendChild(e);return e;};
+
+  [0,.2,.4,.6,.8,1].forEach(v=>{
+    const y=ys(v);
+    mk('line',{x1:pL,y1:y,x2:pL+pw,y2:y,class:'gridl'},svg);
+    const t=mk('text',{x:pL-8,y:y+4,class:'tick-lbl','text-anchor':'end'},svg);t.textContent=v.toFixed(1);
+  });
+  [70,80,90,100,110,120].forEach(v=>{
+    const x=xs(v);
+    mk('line',{x1:x,y1:pT,x2:x,y2:pT+ph,class:'gridl'},svg);
+    const t=mk('text',{x,y:pT+ph+16,class:'tick-lbl','text-anchor':'middle'},svg);t.textContent=v;
+  });
+  mk('line',{x1:pL,y1:pT,x2:pL,y2:pT+ph,class:'axl'},svg);
+  mk('line',{x1:pL,y1:pT+ph,x2:pL+pw,y2:pT+ph,class:'axl'},svg);
+  const yl=mk('text',{class:'axis-lbl','text-anchor':'middle',transform:`rotate(-90) translate(${-(pT+ph/2)},${pL-44})`},svg);yl.textContent='Speed (ips)';
+  const xl=mk('text',{x:pL+pw/2,y:pT+ph+44,class:'axis-lbl','text-anchor':'middle'},svg);xl.textContent='Molar Mass (g/mol)';
+
+  function linReg(pts){
+    const n=pts.length;if(n<2)return null;
+    let sx=0,sy=0,sxy=0,sx2=0;
+    pts.forEach(([x,y])=>{sx+=x;sy+=y;sxy+=x*y;sx2+=x*x;});
+    const m=(n*sxy-sx*sy)/(n*sx2-sx*sx),b=(sy-m*sx)/n;
+    const ym=sy/n,ss=pts.reduce((s,[,y])=>s+(y-ym)**2,0),sr=pts.reduce((s,[x,y])=>s+(y-(m*x+b))**2,0);
+    return{m,b,r2:ss===0?1:1-sr/ss};
+  }
+
+  window.chartTrends={};window.chartDots={};window.chartLbls={};
+  imfGroups.forEach(imf=>{
+    const g=chemicals.filter(c=>c.imf===imf),pts=g.map(c=>[c.molar,c.speed]);
+    const reg=linReg(pts);if(!reg)return;
+    const cl=v=>Math.min(yMax,Math.max(yMin,v));
+    const tl=mk('line',{x1:xs(xMin),y1:ys(cl(reg.m*xMin+reg.b)),x2:xs(xMax),y2:ys(cl(reg.m*xMax+reg.b)),class:'tl',stroke:imfCfg[imf].stroke,opacity:.55},svg);
+    const mx=(xMin+xMax)/2,my=cl(reg.m*mx+reg.b+.04);
+    const rl=mk('text',{x:xs(mx)+4,y:ys(my)-8,class:'r2l',fill:imfCfg[imf].stroke,'font-size':'9'},svg);rl.textContent=`R²=${reg.r2.toFixed(2)}`;
+    window.chartTrends[imf]={tl,rl,reg};
+  });
+
+  const offsets={Pentane:{dx:6,dy:-13,a:'start'},Hexane:{dx:6,dy:12,a:'start'},Octane:{dx:6,dy:-13,a:'start'},
+    Butanone:{dx:-7,dy:-13,a:'end'},Pentanone:{dx:6,dy:12,a:'start'},Heptanone:{dx:6,dy:-13,a:'start'},
+    Butanol:{dx:-7,dy:-13,a:'end'},Pentanol:{dx:6,dy:12,a:'start'},Heptanol:{dx:6,dy:-13,a:'start'}};
+
+  chemicals.forEach(d=>{
+    const cx=xs(d.molar),cy=ys(d.speed),o=offsets[d.name]||{dx:6,dy:-13,a:'start'};
+    const lbl=mk('text',{x:cx+o.dx,y:cy+o.dy,class:'clab','text-anchor':o.a},svg);
+    lbl.textContent=`${d.name} (${d.formula})`;window.chartLbls[d.name]=lbl;
+  });
+
+  const tt=document.getElementById('tt');
+  chemicals.forEach(d=>{
+    const c=imfCfg[d.imf],cx=xs(d.molar),cy=ys(d.speed);
+    const circle=mk('circle',{cx,cy,r:9,fill:c.fill,stroke:c.stroke,'stroke-width':2,class:'dot'},svg);
+    circle.addEventListener('mouseenter',()=>{
+      tt.innerHTML=`<span class="tt-name">${d.name}</span>
+        <div class="tt-row"><span class="tt-key">Formula</span><span class="tt-val">${d.formula}</span></div>
+        <div class="tt-row"><span class="tt-key">Speed</span><span class="tt-val">${d.speed} ips</span></div>
+        <div class="tt-row"><span class="tt-key">Molar Mass</span><span class="tt-val">${d.molar} g/mol</span></div>
+        <div class="tt-row"><span class="tt-key">Time / Length</span><span class="tt-val">${d.t}s / ${d.len}in</span></div>
+        <span class="badge ${c.badge}">${d.imf}</span>
+        <div class="tt-exp">${d.why}</div>`;
+      tt.classList.add('vis');
+    });
+    circle.addEventListener('mousemove',e=>{tt.style.left=(e.clientX+16)+'px';tt.style.top=(e.clientY-10)+'px';});
+    circle.addEventListener('mouseleave',()=>tt.classList.remove('vis'));
+    window.chartDots[d.name]=circle;
+  });
+})();
+
+window.filterChart=function(imf,btn){
+  document.querySelectorAll('.btn.ldf,.btn.dp,.btn.hb,#cball').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  chemicals.forEach(d=>{const s=imf==='all'||d.imf===imf;chartDots[d.name].classList.toggle('dim',!s);chartLbls[d.name].classList.toggle('dim',!s);});
+  imfGroups.forEach(g=>{const s=imf==='all'||g===imf;if(chartTrends[g]){chartTrends[g].tl.classList.toggle('dim',!s);chartTrends[g].rl.classList.toggle('dim',!s);}});
+};
+
+// ===================== STATS =====================
+(function(){
+  function linReg(pts){
+    const n=pts.length;if(n<2)return null;
+    let sx=0,sy=0,sxy=0,sx2=0;
+    pts.forEach(([x,y])=>{sx+=x;sy+=y;sxy+=x*y;sx2+=x*x;});
+    const m=(n*sxy-sx*sy)/(n*sx2-sx*sx),b=(sy-m*sx)/n;
+    const ym=sy/n,ss=pts.reduce((s,[,y])=>s+(y-ym)**2,0),sr=pts.reduce((s,[x,y])=>s+(y-(m*x+b))**2,0);
+    return{m,b,r2:ss===0?1:1-sr/ss};
+  }
+  const cont=document.getElementById('stat-cards-home');
+  const colors={'LDF':'var(--ldf)','Dipole-Dipole':'var(--dp)','Hydrogen Bonding':'var(--hb)'};
+  const bgs={'LDF':'var(--ldf-bg)','Dipole-Dipole':'var(--dp-bg)','Hydrogen Bonding':'var(--hb-bg)'};
+  const borders={'LDF':'var(--ldf-b)','Dipole-Dipole':'var(--dp-b)','Hydrogen Bonding':'var(--hb-b)'};
+  imfGroups.forEach(imf=>{
+    const g=chemicals.filter(c=>c.imf===imf),pts=g.map(c=>[c.molar,c.speed]);
+    const reg=linReg(pts);if(!reg)return;
+    const slopeP10=(reg.m*10).toFixed(3);
+    const avg=(g.reduce((s,c)=>s+c.speed,0)/g.length).toFixed(2);
+    const card=document.createElement('div');
+    card.className='stat-card';
+    card.style.cssText=`background:${bgs[imf]};border-color:${borders[imf]}`;
+    card.innerHTML=`<div class="stat-title" style="color:${colors[imf]}">${imfCfg[imf].label}</div>
+      <div class="stat-val">Slope: ${reg.m.toFixed(4)} · R²: ${reg.r2.toFixed(3)} · Avg: ${avg} ips</div>
+      <div class="stat-interp" style="color:${colors[imf]}88;font-size:.73rem;line-height:1.65">
+        Per 10 g/mol: speed changes <strong style="color:${colors[imf]}">${slopeP10} ips</strong>.
+        R²=${reg.r2.toFixed(2)} → ${Math.round(reg.r2*100)}% of variation explained by molar mass.
+      </div>`;
+    cont.appendChild(card);
+  });
+
+  // Avg bars
+  const avgCont=document.getElementById('avg-bars-home');
+  imfGroups.forEach(imf=>{
+    const g=chemicals.filter(c=>c.imf===imf);
+    const avg=g.reduce((s,c)=>s+c.speed,0)/g.length;
+    const row=document.createElement('div');row.className='bar-row';
+    row.innerHTML=`<div class="bar-label">${imfCfg[imf].label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(avg*100).toFixed(1)}%;background:${imfCfg[imf].fill}">${avg.toFixed(2)} ips avg</div></div>`;
+    avgCont.appendChild(row);
+  });
+
+  // Time bars
+  const timeCont=document.getElementById('time-bars-home');
+  const sorted=[...chemicals].sort((a,b)=>b.t-a.t);
+  const maxT=sorted[0].t;
+  sorted.forEach(d=>{
+    const c=imfCfg[d.imf];
+    const row=document.createElement('div');row.className='bar-row';
+    row.innerHTML=`<div class="bar-label" style="font-size:.58rem">${d.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(d.t/maxT*100).toFixed(1)}%;background:${c.fill}">${d.t}s</div></div>`;
+    timeCont.appendChild(row);
+  });
+})();
+
+// ===================== HOME HERO 3D =====================
+(function(){
+  const canvas=document.getElementById('home-hero-canvas');
+  if(!canvas||!window.THREE)return;
+  const wrap=canvas.parentElement;
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setClearColor(0x000000,0);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(42,1,.1,100);camera.position.set(0,0,7.5);
+  scene.add(new THREE.AmbientLight(0xffffff,.75));
+  const d1=new THREE.DirectionalLight(0xffffff,.8);d1.position.set(4,5,6);scene.add(d1);
+  const d2=new THREE.PointLight(0xc084fc,.65);d2.position.set(-5,-3,4);scene.add(d2);
+  const model=new THREE.Group();scene.add(model);
+  const atoms=[
+    {r:.48,c:0xa0a090,p:[-2.3,0,0]},{r:.48,c:0xa0a090,p:[-0.8,.25,.15]},
+    {r:.48,c:0xa0a090,p:[0.8,-.15,-.1]},{r:.48,c:0xa0a090,p:[2.15,.15,.1]},
+    {r:.52,c:0xf87171,p:[3.45,.55,.2]},{r:.32,c:0xe8e3d8,p:[4.25,1.05,.35]}
+  ];
+  const bonds=[[0,1],[1,2],[2,3],[3,4],[4,5]];
+  atoms.forEach(a=>{const m=new THREE.Mesh(new THREE.SphereGeometry(a.r,22,22),new THREE.MeshPhongMaterial({color:a.c,shininess:90}));m.position.set(...a.p);model.add(m);});
+  bonds.forEach(([i,j])=>{
+    const p1=new THREE.Vector3(...atoms[i].p),p2=new THREE.Vector3(...atoms[j].p);
+    const dir=new THREE.Vector3().subVectors(p2,p1);const len=dir.length();
+    const cyl=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,len,12),new THREE.MeshPhongMaterial({color:0x4b5563,shininess:35}));
+    cyl.position.copy(new THREE.Vector3().addVectors(p1,p2).multiplyScalar(.5));
+    cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());
+    model.add(cyl);
+  });
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(3.6,.03,8,80),new THREE.MeshBasicMaterial({color:0x2a3348,transparent:true,opacity:.55}));ring.rotation.x=1.1;scene.add(ring);
+  let dragging=false,lastX=0,lastY=0,rotX=.25,rotY=.4;
+  const down=(x,y)=>{dragging=true;lastX=x;lastY=y;};
+  const move=(x,y)=>{if(!dragging)return;rotY+=(x-lastX)*.01;rotX+=(y-lastY)*.01;lastX=x;lastY=y;};
+  const up=()=>dragging=false;
+  canvas.addEventListener('mousedown',e=>down(e.clientX,e.clientY));
+  window.addEventListener('mousemove',e=>move(e.clientX,e.clientY));
+  window.addEventListener('mouseup',up);
+  canvas.addEventListener('touchstart',e=>{if(e.touches?.[0])down(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
+  canvas.addEventListener('touchmove',e=>{if(e.touches?.[0]){move(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();}},{passive:false});
+  canvas.addEventListener('touchend',up);
+  let lw=0,lh=0;
+  function resize(){const r=wrap.getBoundingClientRect(),w=Math.floor(r.width),h=Math.floor(r.height);if(w<10||h<10)return;if(w===lw&&h===lh)return;lw=w;lh=h;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  function anim(){requestAnimationFrame(anim);resize();if(!dragging){rotY+=.004;ring.rotation.z+=.002;}model.rotation.x=rotX;model.rotation.y=rotY;renderer.render(scene,camera);}
+  anim();
+})();
+
+// ===================== 3D MOLECULE VIEWER (HOME) =====================
+const molDefs=[
+  {id:'co2',name:'Carbon Dioxide',formula:'CO₂',shape:'Linear',polar:false,imf:'LDF',groups:2,lonePairs:0,angle:'180°',
+   atoms:[{el:'O',r:.9,color:0xf87171,x:-2},{el:'C',r:.7,color:0xa0a090,x:0},{el:'O',r:.9,color:0xf87171,x:2}],
+   bonds:[[0,1,2],[1,2,2]],
+   desc:'Two double bonds, no lone pairs on C. Linear and symmetric — dipoles cancel. Nonpolar despite polar C=O bonds.'},
+  {id:'h2o',name:'Water',formula:'H₂O',shape:'Bent',polar:true,imf:'Hydrogen Bonding',groups:4,lonePairs:2,angle:'104.5°',
+   atoms:[{el:'O',r:.85,color:0xf87171,x:0,y:0},{el:'H',r:.5,color:0xe2dfd8,x:-1.2,y:-1},{el:'H',r:.5,color:0xe2dfd8,x:1.2,y:-1}],
+   bonds:[[0,1,1],[0,2,1]],
+   desc:'4 electron groups (2 bonds + 2 lone pairs) = tetrahedral electron geo. 2 lone pairs push H\'s together → bent. Polar. H-bonding.'},
+  {id:'nh3',name:'Ammonia',formula:'NH₃',shape:'Trig. Pyramidal',polar:true,imf:'Hydrogen Bonding',groups:4,lonePairs:1,angle:'107°',
+   atoms:[{el:'N',r:.8,color:0x4fc3f7,x:0,y:.4},{el:'H',r:.5,color:0xe2dfd8,x:-1.2,y:-.6},{el:'H',r:.5,color:0xe2dfd8,x:1.2,y:-.6},{el:'H',r:.5,color:0xe2dfd8,x:0,y:-1.4}],
+   bonds:[[0,1,1],[0,2,1],[0,3,1]],
+   desc:'4 electron groups (3 bonds + 1 lone pair). 1 lone pair pushes bonds down → trigonal pyramidal. Polar. H-bonding from N–H.'},
+  {id:'ch4',name:'Methane',formula:'CH₄',shape:'Tetrahedral',polar:false,imf:'LDF',groups:4,lonePairs:0,angle:'109.5°',
+   atoms:[{el:'C',r:.75,color:0xa0a090,x:0,y:0},{el:'H',r:.5,color:0xe2dfd8,x:-1.2,y:-1},{el:'H',r:.5,color:0xe2dfd8,x:1.2,y:-1},{el:'H',r:.5,color:0xe2dfd8,x:0,y:1.3},{el:'H',r:.5,color:0xe2dfd8,x:0,y:-1.3,z:1.2}],
+   bonds:[[0,1,1],[0,2,1],[0,3,1],[0,4,1]],
+   desc:'4 bonds, 0 lone pairs = tetrahedral. All C–H bonds are essentially nonpolar. Symmetric → nonpolar. Only LDF.'},
+  {id:'bf3',name:'Boron Trifluoride',formula:'BF₃',shape:'Trig. Planar',polar:false,imf:'LDF',groups:3,lonePairs:0,angle:'120°',
+   atoms:[{el:'B',r:.7,color:0xfbbf24,x:0,y:0},{el:'F',r:.85,color:0xc084fc,x:-1.5,y:-1},{el:'F',r:.85,color:0xc084fc,x:1.5,y:-1},{el:'F',r:.85,color:0xc084fc,x:0,y:1.6}],
+   bonds:[[0,1,1],[0,2,1],[0,3,1]],
+   desc:'Incomplete octet (BF₃). 3 bonds, 0 lone pairs = trigonal planar. Symmetric → dipoles cancel → nonpolar.'},
+];
+
+(function(){
+  const grid=document.getElementById('mol-grid-home');
+  const detail=document.getElementById('mol-detail-home');
+  const __resizers=[];
+  window.__molResizeAllHome=()=>__resizers.forEach(fn=>{try{fn();}catch(e){}});
+
+  molDefs.forEach((m,idx)=>{
+    const card=document.createElement('div');
+    card.className='mol-card-home';card.id='mch-'+m.id;
+    card.innerHTML=`<div class="mol-canvas-wrap-home"><canvas class="molch" id="cvh-${m.id}"></canvas></div>
+      <div class="mol-card-info">
+        <div class="mol-card-name">${m.name}</div>
+        <div class="mol-card-formula">${m.formula}</div>
+        <div style="margin-top:4px">${m.polar?'<span class="badge b-hb" style="font-size:.52rem">Polar</span>':'<span class="badge b-ldf" style="font-size:.52rem">Nonpolar</span>'}</div>
+      </div>`;
+    grid.appendChild(card);
+    card.addEventListener('click',()=>selectMolHome(m));
+    setTimeout(()=>initMolCanvasHome(m),120*idx);
+  });
+
+  function initMolCanvasHome(m){
+    const canvas=document.getElementById('cvh-'+m.id);
+    if(!canvas||!window.THREE)return;
+    const wrap=canvas.parentElement;
+    const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+    renderer.setClearColor(0x000000,0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(45,1,.1,100);camera.position.set(0,0,6);
+    scene.add(new THREE.AmbientLight(0xffffff,.65));
+    const dl=new THREE.DirectionalLight(0xffffff,.85);dl.position.set(6,6,6);scene.add(dl);
+    const model=new THREE.Group();scene.add(model);
+    m.atoms.forEach(a=>{
+      const mesh=new THREE.Mesh(new THREE.SphereGeometry((a.r||.6)*0.5,20,20),new THREE.MeshPhongMaterial({color:a.color||0xe2dfd8,shininess:80}));
+      mesh.position.set(a.x||0,a.y||0,a.z||0);model.add(mesh);
+    });
+    m.bonds.forEach(([i,j])=>{
+      const a=m.atoms[i],b=m.atoms[j];if(!a||!b)return;
+      const p1=new THREE.Vector3(a.x||0,a.y||0,a.z||0),p2=new THREE.Vector3(b.x||0,b.y||0,b.z||0);
+      const dir=new THREE.Vector3().subVectors(p2,p1);const len=dir.length();if(len<=0.0001)return;
+      const cyl=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,len,10),new THREE.MeshPhongMaterial({color:0x555566,shininess:40}));
+      cyl.position.copy(new THREE.Vector3().addVectors(p1,p2).multiplyScalar(.5));
+      cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());model.add(cyl);
+    });
+    let dragging=false,lastX=0,lastY=0,rotX=0,rotY=0;
+    const onDown=(x,y)=>{dragging=true;lastX=x;lastY=y;};
+    const onMove=(x,y)=>{if(!dragging)return;rotY+=(x-lastX)*.01;rotX+=(y-lastY)*.01;lastX=x;lastY=y;};
+    const onUp=()=>dragging=false;
+    canvas.addEventListener('mousedown',e=>onDown(e.clientX,e.clientY));
+    window.addEventListener('mousemove',e=>onMove(e.clientX,e.clientY));
+    window.addEventListener('mouseup',onUp);
+    canvas.addEventListener('touchstart',e=>{if(e.touches?.length)onDown(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
+    canvas.addEventListener('touchmove',e=>{if(e.touches?.length){onMove(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();}},{passive:false});
+    canvas.addEventListener('touchend',onUp);
+    let lastW=0,lastH=0;
+    function resize(){const r=wrap.getBoundingClientRect();const w=Math.max(0,Math.floor(r.width)),h=Math.max(0,Math.floor(r.height));if(w===0||h===0)return;if(w===lastW&&h===lastH)return;lastW=w;lastH=h;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+    __resizers.push(resize);
+    function animate(){requestAnimationFrame(animate);resize();if(!dragging)rotY+=.005;model.rotation.x=rotX;model.rotation.y=rotY;renderer.render(scene,camera);}
+    animate();
+  }
+
+  function selectMolHome(m){
+    document.querySelectorAll('.mol-card-home').forEach(c=>c.classList.remove('selected'));
+    const mc=document.getElementById('mch-'+m.id);if(mc)mc.classList.add('selected');
+    const imfColor={'LDF':'var(--ldf)','Dipole-Dipole':'var(--dp)','Hydrogen Bonding':'var(--hb)'}[m.imf]||'var(--muted)';
+    detail.innerHTML=`<h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;margin-bottom:10px">${m.name} (${m.formula})</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px">
+        <div class="mol-prop"><span class="mpk">Shape</span><span class="mpv">${m.shape}</span></div>
+        <div class="mol-prop"><span class="mpk">Bond Angle</span><span class="mpv">${m.angle}</span></div>
+        <div class="mol-prop"><span class="mpk">Electron Groups</span><span class="mpv">${m.groups}</span></div>
+        <div class="mol-prop"><span class="mpk">Lone Pairs</span><span class="mpv">${m.lonePairs}</span></div>
+        <div class="mol-prop"><span class="mpk">Polarity</span><span class="mpv" style="color:${m.polar?'var(--hb)':'var(--ldf)'}">${m.polar?'Polar ✓':'Nonpolar ✗'}</span></div>
+        <div class="mol-prop"><span class="mpk">Strongest IMF</span><span class="mpv" style="color:${imfColor}">${m.imf}</span></div>
+      </div>
+      <p style="font-size:.8rem;line-height:1.7;color:#a0a098">${m.desc}</p>`;
+  }
+  selectMolHome(molDefs[0]);
+})();
+
+// ===================== CER TABLE =====================
+(function(){
+  const tbody=document.getElementById('cer-table-home');
+  const sorted=[...chemicals].sort((a,b)=>b.speed-a.speed);
+  sorted.forEach(d=>{
+    const c=imfCfg[d.imf];
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${d.name}</strong></td>
+      <td style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted)">${d.formula}</td>
+      <td>${d.molar} g/mol</td>
+      <td>${d.len} in</td>
+      <td>${d.t} s</td>
+      <td style="font-family:'Space Mono',monospace;font-weight:700;color:${c.fill}">${d.speed}</td>
+      <td><span class="badge ${c.badge}">${c.label}</span></td>`;
+    tbody.appendChild(tr);
+  });
+})();
+
+// ===================== QUIZ =====================
+const allQuestions=[
+  {s:'Lewis',d:'easy',type:'mc',q:'How many valence electrons does nitrogen (N) have?',opts:['3','5','6','7'],a:1,ex:'N is in Group 15, so it has 5 valence electrons. It typically forms 3 bonds and has 1 lone pair.'},
+  {s:'Lewis',d:'easy',type:'mc',q:'Total valence electrons in CO₂?',opts:['12','16','18','20'],a:1,ex:'C has 4, each O has 6. Total = 4+6+6 = 16. These form two C=O double bonds.'},
+  {s:'Lewis',d:'med',type:'mc',q:'When a molecule has a negative charge (like NO₃⁻), what do you do when counting valence electrons?',opts:['Subtract electrons','Add electrons','Double the electrons','Ignore the charge'],a:1,ex:'Negative charge = extra electrons gained. Add one electron per unit of negative charge.'},
+  {s:'Lewis',d:'easy',type:'mc',q:'Which atom can NEVER be the central atom?',opts:['Carbon','Nitrogen','Hydrogen','Sulfur'],a:2,ex:'Hydrogen can only form 1 bond so it always sits on the outside. Central atoms must be able to form 2+ bonds.'},
+  {s:'Lewis',d:'med',type:'mc',q:'BF₃ only has 6 electrons around boron. This is:',opts:['Expanded octet','Odd-electron exception','Incomplete octet','Ionic bonding'],a:2,ex:'BF₃ is an incomplete octet exception. Boron in Period 2 only has 3 valence electrons and is stable with 6.'},
+  {s:'Lewis',d:'hard',type:'mc',q:'Which molecule has an ODD number of valence electrons?',opts:['CO₂','BF₃','NO','SF₆'],a:2,ex:'NO: 5+6=11 electrons (odd). One atom cannot have a complete octet — it\'s a radical.'},
+  {s:'Lewis',d:'easy',type:'fill',q:'Period 3+ elements like SF₆ can _______ their octet because they have empty d orbitals.',a:['expand'],ex:'Expanded octet: Period 3+ elements have d orbitals, allowing more than 8 electrons around the central atom.'},
+  {s:'Lewis',d:'easy',type:'mc',q:'How many lone pairs are on oxygen in H₂O?',opts:['0','1','2','3'],a:2,ex:'O has 6 valence e⁻. Forms 2 bonds (uses 4e⁻), leaving 4e⁻ = 2 lone pairs. These cause the bent shape.'},
+  {s:'Lewis',d:'med',type:'mc',q:'How many electrons are in a triple bond?',opts:['2','4','6','8'],a:2,ex:'Single=2e⁻, Double=4e⁻, Triple=6e⁻ (3 pairs). Example: N₂ has a triple bond.'},
+  {s:'Lewis',d:'hard',type:'mc',q:'Total valence electrons in NH₄⁺?',opts:['8','9','10','7'],a:0,ex:'N=5, 4×H=4, positive charge subtracts 1 → 5+4-1=8. NH₄⁺ has no lone pairs.'},
+  {s:'VSEPR',d:'easy',type:'mc',q:'Molecular geometry with 4 bonds and 0 lone pairs?',opts:['Bent','Trigonal Pyramidal','Tetrahedral','Trigonal Planar'],a:2,ex:'4 groups, 0 lone pairs = Tetrahedral. Bond angles 109.5°. Example: CH₄.'},
+  {s:'VSEPR',d:'easy',type:'mc',q:'Molecular geometry of NH₃?',opts:['Tetrahedral','Trigonal Planar','Trigonal Pyramidal','Bent'],a:2,ex:'4 electron groups (3 bonds + 1 lone pair). Lone pair is invisible → Trigonal Pyramidal. Angle ~107°.'},
+  {s:'VSEPR',d:'easy',type:'mc',q:'Molecular geometry of H₂O?',opts:['Linear','Bent','Trigonal Planar','Tetrahedral'],a:1,ex:'4 electron groups (2 bonds + 2 lone pairs) = tetrahedral electron geo. 2 lone pairs → Bent. Angle ~104.5°.'},
+  {s:'VSEPR',d:'med',type:'mc',q:'Both electron AND molecular geometry of CO₂?',opts:['Both Linear','Trigonal Planar/Linear','Both Trigonal Planar','Linear/Bent'],a:0,ex:'CO₂ has 2 electron groups (two C=O double bonds — each counts as 1). 0 lone pairs → Both Linear.'},
+  {s:'VSEPR',d:'easy',type:'mc',q:'How many electron groups does a double bond count as in VSEPR?',opts:['2','1','0','Depends'],a:1,ex:'A double (or triple) bond counts as ONE electron group in VSEPR. Only the regions of electron density matter.'},
+  {s:'VSEPR',d:'med',type:'mc',q:'5 electron groups + 2 lone pairs = what molecular geometry?',opts:['Seesaw','T-Shaped','Square Planar','Trigonal Bipyramidal'],a:1,ex:'5 groups = trig. bipyramidal electron geo. 2 lone pairs → T-Shaped. Example: ClF₃.'},
+  {s:'VSEPR',d:'hard',type:'mc',q:'Molecular geometry of XeF₄?',opts:['Tetrahedral','Octahedral','Square Pyramidal','Square Planar'],a:3,ex:'XeF₄: 6 electron groups (4 bonds + 2 lone pairs) = Octahedral electron geo. 2 lone pairs opposite each other → Square Planar.'},
+  {s:'VSEPR',d:'med',type:'fill',q:'3 electron groups + 1 lone pair: electron geometry = _______, molecular geometry = _______.',a:['trigonal planar','bent'],ex:'3 groups = Trigonal Planar electron geo. 1 lone pair makes the shape Bent. Example: SO₂.'},
+  {s:'VSEPR',d:'easy',type:'mc',q:'Which molecule has trigonal planar molecular geometry?',opts:['NH₃','SO₂','BF₃','H₂O'],a:2,ex:'BF₃: 3 bonds, 0 lone pairs = Trigonal Planar. NH₃ is trigonal pyramidal, SO₂ and H₂O are bent.'},
+  {s:'VSEPR',d:'hard',type:'mc',q:'What is the electron geometry of SF₆?',opts:['Trigonal Bipyramidal','Tetrahedral','Square Pyramidal','Octahedral'],a:3,ex:'SF₆ has 6 bonds, 0 lone pairs. 6 electron groups = Octahedral (both electron and molecular geometry).'},
+  {s:'Bond',d:'easy',type:'mc',q:'Electronegativity difference of 0 means:',opts:['Ionic','Polar Covalent','Nonpolar Covalent','Metallic'],a:2,ex:'Difference = 0 → electrons shared perfectly equally → Nonpolar Covalent. Example: H-H, Cl-Cl.'},
+  {s:'Bond',d:'easy',type:'mc',q:'What EN difference indicates an IONIC bond?',opts:['0','0.5–1.7','1.8 or greater','Exactly 1.0'],a:2,ex:'EN difference ≥ 1.8 → electrons essentially transferred → Ionic bond. Example: Na-Cl (~2.1 difference).'},
+  {s:'Bond',d:'easy',type:'mc',q:'Is the O–H bond polar or nonpolar?',opts:['Nonpolar','Polar Covalent','Ionic','Varies'],a:1,ex:'O (EN=3.44) vs H (EN=2.20). Difference ≈ 1.24 → Polar Covalent. O becomes δ–, H becomes δ+. Key to H-bonding.'},
+  {s:'Bond',d:'med',type:'mc',q:'C–H bonds are treated as:',opts:['Polar — C is more EN','Nonpolar — difference is ~0.35','Ionic — H gives e⁻ to C','Polar — H is more EN'],a:1,ex:'C (EN=2.55), H (EN=2.20). Difference ≈ 0.35 < 0.5 → treated as Nonpolar Covalent. Why hydrocarbons are nonpolar.'},
+  {s:'Bond',d:'med',type:'mc',q:'In a polar bond, δ– is on:',opts:['Less electronegative atom','More electronegative atom','Both equally','Neither'],a:1,ex:'The more electronegative atom pulls electrons → gains δ–. Less EN atom loses electron density → becomes δ+.'},
+  {s:'Molecular',d:'med',type:'mc',q:'CO₂ has polar bonds but is nonpolar overall. Why?',opts:['Bonds are actually nonpolar','Linear & symmetric — dipoles cancel','C is not electronegative enough','No lone pairs = nonpolar'],a:1,ex:'CO₂ is linear with two identical C=O bonds pointing opposite directions. Equal, opposite dipoles cancel → net dipole = 0.'},
+  {s:'Molecular',d:'easy',type:'mc',q:'Which molecule is POLAR?',opts:['CO₂','CCl₄','NH₃','BF₃'],a:2,ex:'NH₃ is trigonal pyramidal with a lone pair — asymmetric, dipoles don\'t cancel. The others are symmetric → nonpolar.'},
+  {s:'Molecular',d:'med',type:'mc',q:'SO₂ is polar because:',opts:['It has a triple bond','It is linear like CO₂','Bent shape + lone pair — dipoles don\'t cancel','S is more EN than O'],a:2,ex:'SO₂ has 3 electron groups (2 bonds + 1 lone pair) → bent. Asymmetric → net dipole → polar.'},
+  {s:'Molecular',d:'easy',type:'mc',q:'Which shape is ALWAYS polar (with polar bonds)?',opts:['Linear','Tetrahedral','Trigonal Planar','Bent'],a:3,ex:'Bent is always polar — lone pairs create asymmetric electron distribution that dipoles can\'t cancel.'},
+  {s:'Molecular',d:'hard',type:'mc',q:'Symmetrical molecule with polar bonds is:',opts:['Polar','Nonpolar','Ionic','Impossible to determine'],a:1,ex:'Symmetrical → bond dipoles point in opposite directions and cancel → net molecular dipole = 0 → Nonpolar. Ex: CO₂, CCl₄, BF₃.'},
+  {s:'IMF',d:'easy',type:'mc',q:'Strongest IMF in CH₄?',opts:['Hydrogen Bonding','Dipole–Dipole','London Dispersion','Ionic'],a:2,ex:'CH₄ is nonpolar (tetrahedral, all C–H). Nonpolar molecules have ONLY London Dispersion Forces.'},
+  {s:'IMF',d:'easy',type:'mc',q:'Strongest IMF in H₂O?',opts:['LDF','Dipole–Dipole','Hydrogen Bonding','Covalent bonds'],a:2,ex:'H₂O has H directly bonded to O → Hydrogen Bonding. This is why water has such a high boiling point.'},
+  {s:'IMF',d:'med',type:'mc',q:'Strongest IMF in SO₂?',opts:['LDF','Dipole–Dipole','Hydrogen Bonding','Ionic'],a:1,ex:'SO₂ is polar (bent) but has no H on O, N, or F → no H-bonding. Strongest IMF = Dipole–Dipole.'},
+  {s:'IMF',d:'easy',type:'mc',q:'Which does NOT have hydrogen bonding?',opts:['HF','NH₃','H₂O','CO₂'],a:3,ex:'CO₂ is nonpolar → only LDF. HF, NH₃, H₂O all have H bonded to F, N, or O respectively.'},
+  {s:'IMF',d:'hard',type:'mc',q:'IMFs weakest to strongest:',opts:['LDF < Dipole–Dipole < H-Bonding','H-Bonding < LDF < Dipole–Dipole','Dipole–Dipole < LDF < H-Bonding','LDF < H-Bonding < Dipole–Dipole'],a:0,ex:'LDF (temporary dipoles) < Dipole–Dipole (permanent dipoles) < Hydrogen Bonding (H on F/O/N).'},
+  {s:'Application',d:'med',type:'mc',q:'Pentanol (0.16 ips) is ~6× slower than Pentane (0.92 ips) with similar molar masses. Why?',opts:['Pentanol has more carbons','Pentanol\'s –OH enables hydrogen bonding','Pentane has C=O bond','Pentanol is nonpolar'],a:1,ex:'Same size, so similar LDF. The –OH group in pentanol enables hydrogen bonding — much stronger, much more viscous.'},
+  {s:'Application',d:'med',type:'mc',q:'Why can\'t ketones hydrogen bond?',opts:['They are nonpolar','C=O but no H bonded to O/N/F','They are too small','H-bonding only with metals'],a:1,ex:'H-bonding needs H covalently bonded to O, N, or F. In ketones, O is bonded to two carbons (C=O) — no O–H exists.'},
+  {s:'Application',d:'easy',type:'fill',q:'Stronger _______ forces = higher viscosity = _______ bubble speed.',a:['intermolecular','slower'],ex:'Stronger IMF holds molecules together more tightly → bubble must overcome more resistance → slower.'},
+  {s:'Application',d:'easy',type:'mc',q:'Which chemical was slowest in the lab?',opts:['Heptanol','Butanol','Pentanol','Heptanone'],a:2,ex:'Pentanol: 0.16 ips. Strong hydrogen bonding from –OH despite moderate molar mass.'},
+  {s:'Application',d:'hard',type:'mc',q:'Within the LDF group, Pentane (72g/mol) is faster than Octane (114g/mol). Why?',opts:['Pentane is polar','Octane has H-bonding','Larger molecules have more electrons → stronger LDF','Molar mass has no effect on LDF'],a:2,ex:'More carbons = more electrons = stronger instantaneous dipoles = stronger LDF = more viscous = slower bubble.'},
+];
+
+let qFilter='all',timedMode=false,activeQs=[...allQuestions],qCurrent=0,qScore=0,qAnswered=[],qTimer=null,qTimeLeft=0;
+const letters='ABCD';
+const secColors={Lewis:'#38bdf8',VSEPR:'#fbbf24',Bond:'#4ade80',Molecular:'#c084fc',IMF:'#f87171',Application:'#fb923c'};
+const diffColor={easy:'#4ade80',med:'#fbbf24',hard:'#f87171'};
+
+function setQFilter(f,btn){
+  qFilter=f;
+  document.querySelectorAll('#section-quiz .btn-row:first-of-type .btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeQs=f==='all'?[...allQuestions]:allQuestions.filter(q=>q.s===f);
+  qCurrent=0;qScore=0;qAnswered=[];
+  document.getElementById('score-box').classList.remove('vis');
+  document.getElementById('qcont').style.display='block';
+  buildQ();
+}
+
+function toggleTimed(){
+  timedMode=!timedMode;
+  document.getElementById('timed-btn').textContent=`⏱ Timed: ${timedMode?'ON (20s)':'OFF'}`;
+  document.getElementById('timed-btn').classList.toggle('active',timedMode);
+}
+
+function buildQProgress(){
+  const bar=document.getElementById('qpbar');bar.innerHTML='';
+  activeQs.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='qp-dot'+(i===qCurrent?' cur':qAnswered[i]==='correct'?' correct':qAnswered[i]==='wrong'?' wrong':'');
+    bar.appendChild(d);
+  });
+}
+
+function buildQ(){
+  const cont=document.getElementById('qcont');
+  if(!activeQs.length){cont.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">No questions match this filter.</div>';return;}
+  const q=activeQs[qCurrent];
+  const sc=secColors[q.s]||'#8a8880';
+  let html=`<div class="quiz-card" id="qcard">
+    <div class="qch">
+      <span class="qnum">Q ${qCurrent+1} / ${activeQs.length}</span>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span class="qsec-badge" style="background:${sc}18;color:${sc};border:1px solid ${sc}44">${q.s}</span>
+        <span class="qdiff" style="color:${diffColor[q.d]}">●${q.d}</span>
+      </div>
+    </div>
+    <div class="qbody">
+      <div class="qtext">${q.q}</div>`;
+  if(q.type==='mc'){
+    html+=`<div class="opts">`;
+    q.opts.forEach((o,i)=>html+=`<div class="opt" id="opt${i}" onclick="pickOpt(${i})"><span class="opt-letter">${letters[i]}</span>${o}</div>`);
+    html+=`</div>`;
+  }else{
+    html+=`<div style="display:flex;flex-direction:column;gap:8px">`;
+    q.a.forEach((_,i)=>html+=`<div style="display:flex;align-items:center;gap:10px"><span style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);min-width:52px">Blank ${i+1}</span><input class="fill-in" id="fi${i}" placeholder="Type answer…" onkeydown="if(event.key==='Enter')checkQ()"></div>`);
+    html+=`</div>`;
+  }
+  html+=`<div class="fb" id="fb"></div><div class="qa-row"><button class="qbtn primary" onclick="checkQ()">Check Answer</button><button class="qbtn sec" id="nextbtn" onclick="nextQ()" style="display:none">Next →</button></div></div></div>`;
+  cont.innerHTML=html;
+  buildQProgress();
+  window._qsel=null;
+  if(timedMode)startTimer();
+}
+
+function startTimer(){
+  clearInterval(qTimer);qTimeLeft=20;
+  const fill=document.getElementById('timer-fill');
+  fill.style.width='100%';fill.style.background='var(--green)';
+  qTimer=setInterval(()=>{
+    qTimeLeft--;
+    const pct=qTimeLeft/20*100;
+    fill.style.width=pct+'%';
+    fill.style.background=pct>50?'var(--green)':pct>25?'var(--gold)':'var(--red)';
+    if(qTimeLeft<=0){clearInterval(qTimer);autoFail();}
+  },1000);
+}
+
+function autoFail(){
+  const q=activeQs[qCurrent];
+  qAnswered[qCurrent]='wrong';
+  const card=document.getElementById('qcard');if(card)card.classList.add('bad');
+  if(q.type==='mc'){document.querySelectorAll('.opt').forEach((o,i)=>{o.classList.add('locked');if(i===q.a)o.classList.add('ok2');});}
+  const fb=document.getElementById('fb');
+  if(fb){fb.innerHTML='⏱ Time\'s up! '+q.ex;fb.className='fb vis bad2';}
+  const nb=document.getElementById('nextbtn');if(nb)nb.style.display='inline-block';
+  buildQProgress();
+}
+
+function pickOpt(i){
+  if(document.querySelector('.opt.ok2'))return;
+  document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+  document.getElementById('opt'+i).classList.add('sel');
+  window._qsel=i;
+}
+
+function checkQ(){
+  clearInterval(qTimer);
+  document.getElementById('timer-fill').style.width='100%';
+  document.getElementById('timer-fill').style.background='var(--green)';
+  const q=activeQs[qCurrent];
+  const fb=document.getElementById('fb');
+  const card=document.getElementById('qcard');
+  if(q.type==='mc'){
+    if(window._qsel===null){fb.textContent='Please select an answer.';fb.className='fb vis bad2';return;}
+    const ok=window._qsel===q.a;
+    document.querySelectorAll('.opt').forEach((o,i)=>{o.classList.add('locked');if(i===q.a)o.classList.add('ok2');else if(i===window._qsel&&!ok)o.classList.add('bad2');});
+    if(ok){qScore++;qAnswered[qCurrent]='correct';card.classList.add('ok');}else{qAnswered[qCurrent]='wrong';card.classList.add('bad');}
+    fb.innerHTML=(ok?'✅ Correct! ':'❌ Incorrect. ')+q.ex;fb.className='fb vis '+(ok?'good':'bad2');
+  }else{
+    const inputs=q.a.map((_,i)=>(document.getElementById('fi'+i)||{value:''}).value.trim().toLowerCase());
+    const ok=q.a.every((ans,i)=>inputs[i].includes(ans.toLowerCase())||ans.toLowerCase().includes(inputs[i]));
+    q.a.forEach((_,i)=>{const inp=document.getElementById('fi'+i);if(inp){inp.classList.add(ok?'ok':'bad');inp.disabled=true;if(!ok&&!inp.value.trim())inp.value=q.a[i];}});
+    if(ok){qScore++;qAnswered[qCurrent]='correct';card.classList.add('ok');}else{qAnswered[qCurrent]='wrong';card.classList.add('bad');}
+    fb.innerHTML=(ok?'✅ Correct! ':'❌ Incorrect. Answers: <strong>'+q.a.join(', ')+'</strong>. ')+q.ex;fb.className='fb vis '+(ok?'good':'bad2');
+  }
+  document.getElementById('nextbtn').style.display='inline-block';
+  buildQProgress();
+}
+
+function nextQ(){
+  qCurrent++;
+  if(qCurrent>=activeQs.length)showScore();
+  else buildQ();
+}
+
+function showScore(){
+  document.getElementById('qcont').style.display='none';
+  const box=document.getElementById('score-box');box.classList.add('vis');
+  const pct=Math.round(qScore/activeQs.length*100);
+  const big=document.getElementById('score-big');
+  big.textContent=`${qScore}/${activeQs.length}`;
+  big.style.color=pct>=80?'var(--green)':pct>=60?'var(--gold)':'var(--red)';
+  document.getElementById('score-msg').textContent=pct===100?'Perfect! You have mastered this material.':pct>=80?'Great work! Review any missed questions to solidify your understanding.':pct>=60?'Good effort — head to the Study Sheet and Chemistry sections to review weaker areas.':'Keep studying! Use the Study Sheet and then retake the quiz.';
+  const sections={};
+  activeQs.forEach((q,i)=>{if(!sections[q.s])sections[q.s]={c:0,t:0};sections[q.s].t++;if(qAnswered[i]==='correct')sections[q.s].c++;});
+  const bk=document.getElementById('breakdown');bk.innerHTML='';
+  Object.entries(sections).forEach(([s,v])=>{
+    const div=document.createElement('div');div.className='bk-item';
+    const sc=secColors[s]||'#8a8880';
+    div.innerHTML=`<div class="bk-sec" style="color:${sc}">${s}</div><div class="bk-val" style="color:${v.c===v.t?'var(--green)':v.c/v.t>=.6?'var(--gold)':'var(--red)'}">${v.c}/${v.t}</div>`;
+    bk.appendChild(div);
+  });
+}
+
+function resetQuiz(){
+  qCurrent=0;qScore=0;qAnswered=[];clearInterval(qTimer);
+  document.getElementById('score-box').classList.remove('vis');
+  document.getElementById('qcont').style.display='block';
+  document.getElementById('timer-fill').style.width='100%';
+  buildQ();
+}
+
+function showWrong(){
+  const wrong=activeQs.filter((_,i)=>qAnswered[i]==='wrong');
+  if(!wrong.length){alert('No wrong answers to review! 🎉');return;}
+  activeQs=wrong;qCurrent=0;qScore=0;qAnswered=[];
+  document.getElementById('score-box').classList.remove('vis');
+  document.getElementById('qcont').style.display='block';
+  buildQ();
+}
+
+buildQ();
+
+// ===================== POLARITY FLOWCHART =====================
+const molFlowData={
+  CO2:{bonds:'polar (C=O)',geometry:'Linear',lonePairs:'No',symmetric:'Yes',polar:'Nonpolar',imf:'LDF',angle:'180°'},
+  H2O:{bonds:'polar (O-H)',geometry:'Bent',lonePairs:'Yes (2 on O)',symmetric:'No',polar:'Polar',imf:'Hydrogen Bonding',angle:'104.5°'},
+  NH3:{bonds:'polar (N-H)',geometry:'Trigonal Pyramidal',lonePairs:'Yes (1 on N)',symmetric:'No',polar:'Polar',imf:'Hydrogen Bonding',angle:'107°'},
+  BF3:{bonds:'polar (B-F)',geometry:'Trigonal Planar',lonePairs:'No',symmetric:'Yes',polar:'Nonpolar',imf:'LDF',angle:'120°'},
+  CH4:{bonds:'nonpolar (C-H)',geometry:'Tetrahedral',lonePairs:'No',symmetric:'Yes',polar:'Nonpolar',imf:'LDF',angle:'109.5°'},
+  SO2:{bonds:'polar (S-O)',geometry:'Bent',lonePairs:'Yes (1 on S)',symmetric:'No',polar:'Polar',imf:'Dipole-Dipole',angle:'119°'},
+  CCl4:{bonds:'polar (C-Cl)',geometry:'Tetrahedral',lonePairs:'No',symmetric:'Yes',polar:'Nonpolar',imf:'LDF',angle:'109.5°'},
+  HF:{bonds:'polar (H-F)',geometry:'Linear',lonePairs:'Yes (3 on F)',symmetric:'No',polar:'Polar',imf:'Hydrogen Bonding',angle:'180°'},
+  N2:{bonds:'nonpolar (N-N)',geometry:'Linear',lonePairs:'No',symmetric:'Yes',polar:'Nonpolar',imf:'LDF',angle:'180°'},
+};
+
+let flowMol=null,flowStep=0,flowAnswers={};
+function resetFlow(){flowMol=null;flowStep=0;flowAnswers={};document.getElementById('fc-mol-select').value='';renderFlow();}
+function loadMolFlow(v){if(!v)return;flowMol=molFlowData[v];flowStep=0;flowAnswers={};renderFlow();}
+
+function renderFlow(){
+  const wrap=document.getElementById('flow-wrap');
+  if(!flowMol){
+    wrap.innerHTML=`<div style="text-align:center;padding:36px;color:var(--muted);font-size:.83rem;border:1px solid var(--border);border-radius:8px">← Select a molecule above to walk through the polarity flowchart.</div>`;
+    return;
+  }
+  const steps=[
+    {label:'Step 1',q:'Are the individual bonds polar?',answer:flowMol.bonds,opts:['Yes — bonds are polar','No — bonds are nonpolar']},
+    {label:'Step 2',q:'What is the molecular geometry?',answer:flowMol.geometry,opts:null,info:`Geometry: <strong>${flowMol.geometry}</strong> (${flowMol.angle})`},
+    {label:'Step 3',q:'Are there lone pairs on the central atom?',answer:flowMol.lonePairs,opts:['Yes','No']},
+    {label:'Step 4',q:'Is the molecule symmetrical? (Do dipoles cancel?)',answer:flowMol.symmetric==='Yes'?'Yes — symmetric':'No — asymmetric',opts:['Yes — symmetric','No — asymmetric']},
+  ];
+  let html='';
+  steps.forEach((step,i)=>{
+    if(i>flowStep)return;
+    html+=`<div class="flow-q"><div class="fq-label">${step.label}</div><div class="fq-text">${step.q}</div></div>`;
+    if(step.opts){
+      html+=`<div class="flow-opts">`;
+      step.opts.forEach(o=>{
+        const chosen=flowAnswers[i];
+        const isMatch=o.toLowerCase().includes(step.answer.toLowerCase())||step.answer.toLowerCase().includes(o.toLowerCase().split('—')[0].trim());
+        html+=`<div class="flow-opt ${chosen===o?(isMatch?'chosen-yes':'chosen-no'):''}" onclick="flowAnswer(${i},'${o.replace(/'/g,"\\'")}',${i+1<steps.length})">${o}</div>`;
+      });
+      html+=`</div>`;
+    }else{
+      html+=`<div class="flow-arrow">↓</div><div style="text-align:center;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:9px 14px;margin-bottom:10px;font-size:.83rem">${step.info}</div>`;
+      if(i===flowStep)setTimeout(()=>{flowStep=Math.max(flowStep,i+1);renderFlow();},500);
+    }
+    if(i<flowStep)html+=`<div class="flow-arrow">↓</div>`;
+  });
+  if(flowStep>=steps.length){
+    const polar=flowMol.polar==='Polar';
+    const imfC={'LDF':'var(--ldf)','Dipole-Dipole':'var(--dp)','Hydrogen Bonding':'var(--hb)'}[flowMol.imf]||'var(--text)';
+    html+=`<div class="flow-result" style="background:${polar?'var(--hb-bg)':'var(--ldf-bg)'};border:1px solid ${polar?'var(--hb-b)':'var(--ldf-b)'}">
+      <div class="fr-label" style="color:${polar?'var(--hb)':'var(--ldf)'}">${flowMol.polar}</div>
+      <div class="fr-sub" style="color:${imfC}">Strongest IMF: <strong>${flowMol.imf}</strong></div>
+      <div class="fr-sub" style="color:#a0a098;margin-top:5px">${polar?'Dipoles do NOT cancel — net molecular dipole exists.':'Dipoles cancel — no net molecular dipole.'}</div>
+    </div>`;
+  }
+  wrap.innerHTML=html;
+}
+
+function flowAnswer(step,opt,advance){
+  flowAnswers[step]=opt;
+  if(advance)flowStep=Math.max(flowStep,step+1);
+  renderFlow();
+}
+renderFlow();
+
+// ===================== SIMULATOR =====================
+const simData={
+  alkane:{baseSpeed:0.95,slopePerC:-0.046,imf:'LDF',color:'#38bdf8',badge:'b-ldf',liquidColor:'#0a1a2a',
+   explainFn:(c,mm,sp)=>`<strong>Alkane (LDF only)</strong>: ${c} carbons → MM ≈ ${mm} g/mol. Only London Dispersion Forces. ${c<=5?'Small molecule → weak LDF → fast bubble.':c<=7?'Medium size → moderate LDF.':'Large molecule → stronger LDF → slower.'} Predicted speed: <strong>${sp} ips</strong>.`},
+  ketone:{baseSpeed:0.72,slopePerC:-0.055,imf:'Dipole–Dipole',color:'#fb923c',badge:'b-dp',liquidColor:'#2a1200',
+   explainFn:(c,mm,sp)=>`<strong>Ketone (Dipole–Dipole)</strong>: C=O group → permanent dipole. ${c} carbons → MM ≈ ${mm} g/mol. Stronger than LDF alone. No O–H = no H-bonding. Predicted speed: <strong>${sp} ips</strong>.`},
+  alcohol:{baseSpeed:0.55,slopePerC:-0.048,imf:'Hydrogen Bonding',color:'#f87171',badge:'b-hb',liquidColor:'#2a0808',
+   explainFn:(c,mm,sp)=>`<strong>Alcohol (H-Bonding)</strong>: –OH group → strongest IMF. ${c} carbons → MM ≈ ${mm} g/mol. Dense H-bond network dramatically slows flow. Predicted speed: <strong>${sp} ips</strong>.`},
+};
+
+function runSim(){
+  const group=document.getElementById('sim-group').value;
+  const carbons=parseInt(document.getElementById('sim-carbons').value);
+  const cfg=simData[group];
+  const mm={alkane:2+14*carbons,ketone:14*carbons+14,alcohol:14*carbons+18}[group]||100;
+  const rawSpeed=Math.max(0.05,Math.min(1.2,cfg.baseSpeed+cfg.slopePerC*(carbons-3)));
+  const sp=rawSpeed.toFixed(2);
+  document.getElementById('sim-mm').textContent=`${mm} g/mol`;
+  document.getElementById('sim-speed-num').textContent=sp;
+  document.getElementById('sim-speed-num').style.color=cfg.color;
+  document.getElementById('sim-imf-badge').innerHTML=`<span class="badge ${cfg.badge}">${cfg.imf}</span>`;
+  document.getElementById('sim-explain').innerHTML=cfg.explainFn(carbons,mm,sp);
+  document.getElementById('sim-liquid').style.background=cfg.liquidColor;
+  const bubble=document.getElementById('sim-bubble');
+  const tube=document.getElementById('sim-tube');
+  const tubeH=tube.clientHeight||160;
+  bubble.style.bottom='10px';
+  bubble.style.borderColor=cfg.color;
+  const duration=Math.max(400,Math.min(5000,1/rawSpeed*800));
+  bubble.style.transition=`bottom ${duration}ms linear`;
+  setTimeout(()=>{bubble.style.bottom=(tubeH-32)+'px';},50);
+  setTimeout(()=>{bubble.style.transition='none';bubble.style.bottom='10px';},duration+200);
+}
+runSim();
+
+(function(){
+  const cont=document.getElementById('sim-ref-bars');
+  const sorted=[...chemicals].sort((a,b)=>b.speed-a.speed);
+  sorted.forEach(d=>{
+    const c=imfCfg[d.imf];
+    const row=document.createElement('div');row.className='bar-row';
+    row.innerHTML=`<div class="bar-label" style="font-size:.58rem">${d.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(d.speed*100).toFixed(0)}%;background:${c.fill}">${d.speed} ips</div></div>`;
+    cont.appendChild(row);
+  });
+})();
+
+// ===================== ERROR ANALYSIS =====================
+(function(){
+  const errors=[
+    {icon:'⏱',title:'Human Timing',body:'Reaction time using video adds ±0.5s error. For 6.5s (pentane) that\'s ~8% error.'},
+    {icon:'🌡️',title:'Temperature',body:'Viscosity is temperature-sensitive. Body heat from handling could lower viscosity artificially.'},
+    {icon:'📏',title:'Tube Length',body:'Tubes ranged 6–9.5 inches. Non-identical distances introduce comparison error.'},
+    {icon:'🫧',title:'Bubble Size',body:'Varying bubble size changes drag force, making results less consistent.'},
+    {icon:'📐',title:'Tube Angle',body:'Non-vertical tubes slow the bubble via sidewall contact.'},
+    {icon:'👁',title:'Endpoint',body:'Inconsistent judgment of when the bubble "reached the top" adds ±0.5–1s.'},
+  ];
+  const improvements=[
+    {icon:'🔄',title:'Multiple Trials',body:'Run ≥3 trials per chemical and average results to reduce random error.'},
+    {icon:'🌡️',title:'Temp. Control',body:'Use a water bath at exactly 25°C to eliminate temperature as a variable.'},
+    {icon:'📏',title:'Same Tube Length',body:'Standardize tube length for every sample for fair comparison.'},
+    {icon:'📹',title:'Slow-Motion Video',body:'240fps recording reduces timing error from ~0.5s to under 0.05s.'},
+    {icon:'📐',title:'Tube Stand',body:'Clamp each tube at exactly 90° vertical. Eliminates angle error.'},
+    {icon:'🤖',title:'Optical Sensor',body:'Light sensors auto-start/stop timer when bubble passes. Removes human timing.'},
+  ];
+  const eg=document.getElementById('err-grid'),ig=document.getElementById('improve-grid');
+  errors.forEach(e=>{
+    const card=document.createElement('div');card.className='err-card';
+    card.innerHTML=`<div class="err-icon">${e.icon}</div><div class="err-title">${e.title}</div><div class="err-body">${e.body}</div>`;
+    eg.appendChild(card);
+  });
+  improvements.forEach(e=>{
+    const card=document.createElement('div');card.className='err-card';
+    card.innerHTML=`<div class="err-icon">${e.icon}</div><div class="err-title">${e.title}</div><div class="err-body">${e.body}</div>`;
+    ig.appendChild(card);
+  });
+})();
+
+// ===================== REAL WORLD =====================
+(function(){
+  const items=[
+    {icon:'⛽',title:'Gasoline evaporates fast',body:'Mostly alkanes (hexane, octane) — LDF only, low viscosity. That\'s why you smell it immediately.',tag:'ldf'},
+    {icon:'💧',title:'Water beads on surfaces',body:'Strong H-bonding makes water prefer itself over spreading out. High surface tension forms droplets.',tag:'hb'},
+    {icon:'🧴',title:'Rubbing alcohol vs. hexane',body:'Isopropanol (H-bonding) evaporates slowly. Hexane (LDF only) evaporates almost instantly.',tag:'ldf'},
+    {icon:'🧬',title:'DNA double helix',body:'Two DNA strands held together by H-bonds between base pairs (A-T, G-C). IMF = genetic storage.',tag:'hb'},
+    {icon:'🧊',title:'Why ice floats',body:'In ice, H-bonds form a rigid lattice with more space than liquid water → ice less dense than water.',tag:'hb'},
+    {icon:'🫀',title:'Protein folding',body:'Proteins fold into 3D shapes because of H-bonds, dipole–dipole, and LDF between amino acids.',tag:'dp'},
+    {icon:'🛢️',title:'Motor oil viscosity',body:'Large alkane chains — strong LDF from high molar mass. That\'s why oil pours slowly and lubricates.',tag:'ldf'},
+    {icon:'🧽',title:'Detergent & soap',body:'Surfactants have a polar head (H-bonding with water) and nonpolar tail (LDF with oil). IMF both ways.',tag:'dp'},
+  ];
+  const grid=document.getElementById('rw-grid');
+  const cfg2={ldf:{color:'var(--ldf)',bg:'var(--ldf-bg)',border:'var(--ldf-b)'},dp:{color:'var(--dp)',bg:'var(--dp-bg)',border:'var(--dp-b)'},hb:{color:'var(--hb)',bg:'var(--hb-bg)',border:'var(--hb-b)'}};
+  items.forEach(item=>{
+    const c=cfg2[item.tag];
+    const card=document.createElement('div');card.className='rw-card';
+    card.style.borderColor=c.border;
+    card.innerHTML=`<div class="rw-icon">${item.icon}</div><div class="rw-title">${item.title}</div><div class="rw-body">${item.body}</div>
+      <span class="badge" style="display:inline-block;margin-top:8px;background:${c.bg};color:${c.color};border:1px solid ${c.border}">${{ldf:'LDF',dp:'Dipole–Dipole',hb:'H-Bonding'}[item.tag]}</span>`;
+    grid.appendChild(card);
+  });
+})();
+
+// ===================== BIG IDEA CHAIN =====================
+(function(){
+  const items=[
+    {icon:'⚛️',title:'Molecular Structure',sub:'Atoms, bonds, and electron pairs from Lewis structures + VSEPR'},
+    {icon:'⚖️',title:'Bond & Mol. Polarity',sub:'Asymmetry + polar bonds = polar molecule with net dipole'},
+    {icon:'🔗',title:'Intermolecular Forces',sub:'Polarity determines IMF: nonpolar→LDF, polar→Dipole–Dipole, H on O/N/F→H-Bonding'},
+    {icon:'🌊',title:'Physical Properties',sub:'IMF strength controls viscosity, boiling point, and vapor pressure'},
+  ];
+  const chain=document.getElementById('chain-row');
+  items.forEach((item,i)=>{
+    const div=document.createElement('div');div.className='chain-node';
+    div.innerHTML=`<div class="cn-icon">${item.icon}</div><div class="cn-title">${item.title}</div><div class="cn-sub">${item.sub}</div>`;
+    chain.appendChild(div);
+    if(i<items.length-1){const arr=document.createElement('div');arr.className='chain-arrow-h';arr.textContent='→';chain.appendChild(arr);}
+  });
+})();
+
+// ===================== STUDY SHEET =====================
+(function(){
+  const grid=document.getElementById('sheet-grid');
+  const sheets=[
+    {title:'Valence Electrons',color:'#38bdf8',bg:'#061824',border:'#0e3a58',
+     content:`<table class="sheet-table"><tr><th>Element</th><th>Group</th><th>e⁻</th></tr>
+       ${[['H','1',1],['C','14',4],['N','15',5],['O','16',6],['F/Cl','17',7],['S/Se','16',6],['B','13',3]].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>`},
+    {title:'VSEPR Geometries',color:'#fbbf24',bg:'#1c1200',border:'#5a3a00',
+     content:`<table class="sheet-table"><tr><th>Groups</th><th>LP</th><th>Shape</th></tr>
+       ${[['2','0','Linear'],['3','0','Trig. Planar'],['3','1','Bent'],['4','0','Tetrahedral'],['4','1','Trig. Pyramidal'],['4','2','Bent'],['5','0','Trig. Bipyramidal'],['5','1','Seesaw'],['6','0','Octahedral'],['6','2','Sq. Planar']].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</table>`},
+    {title:'Bond Type by EN Diff.',color:'#4ade80',bg:'#061406',border:'#1a4a1a',
+     content:`<table class="sheet-table"><tr><th>EN Diff.</th><th>Bond Type</th></tr>
+       <tr><td>0–0.4</td><td>Nonpolar Covalent</td></tr><tr><td>0.5–1.7</td><td>Polar Covalent</td></tr><tr><td>≥1.8</td><td>Ionic</td></tr></table>
+       <div style="margin-top:8px;font-size:.68rem;line-height:1.6;color:#a0a098">Key EN: F=4.0, O=3.44, N=3.04, C=2.55, H=2.20, Na=0.93</div>`},
+    {title:'IMF Quick Reference',color:'#f87171',bg:'#160808',border:'#4a1818',
+     content:`<table class="sheet-table"><tr><th>IMF</th><th>When</th><th>Strength</th></tr>
+       <tr><td>LDF</td><td>All molecules</td><td>Weakest</td></tr>
+       <tr><td>Dipole–Dipole</td><td>Polar, no H on O/N/F</td><td>Medium</td></tr>
+       <tr><td>H-Bonding</td><td>H on O, N, or F</td><td>Strongest</td></tr></table>
+       <div style="margin-top:8px;font-size:.68rem;line-height:1.6;color:#a0a098"><strong>H-bond examples:</strong> H₂O, NH₃, HF, alcohols<br><strong>LDF only:</strong> CH₄, N₂, CO₂, alkanes</div>`},
+    {title:'Polarity Rules',color:'#c084fc',bg:'#160820',border:'#4a1860',
+     content:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+       <div><div style="color:var(--hb);font-family:'Space Mono',monospace;font-size:.56rem;margin-bottom:5px">ALWAYS POLAR</div>${['Bent','Trig. Pyramidal','Seesaw','T-Shaped','Sq. Pyramidal'].map(s=>`<div style="font-size:.7rem;padding:2px 0">${s}</div>`).join('')}</div>
+       <div><div style="color:var(--ldf);font-family:'Space Mono',monospace;font-size:.56rem;margin-bottom:5px">NONPOLAR*</div>${['Linear','Trig. Planar','Tetrahedral','Trig. Bipyramidal','Octahedral','Sq. Planar'].map(s=>`<div style="font-size:.7rem;padding:2px 0">${s}</div>`).join('')}</div>
+       </div><div style="font-size:.65rem;color:var(--muted);margin-top:6px">*Only if all outer atoms are identical</div>`},
+    {title:'Lab Data Reference',color:'#fb923c',bg:'#1c1000',border:'#5a2e00',
+     content:`<table class="sheet-table"><tr><th>Chemical</th><th>Speed</th><th>IMF</th></tr>
+       ${[...chemicals].sort((a,b)=>b.speed-a.speed).map(d=>`<tr><td>${d.name}</td><td style="font-family:'Space Mono',monospace;color:${imfCfg[d.imf].fill}">${d.speed}</td><td>${imfCfg[d.imf].label}</td></tr>`).join('')}</table>`},
+  ];
+  sheets.forEach(s=>{
+    const card=document.createElement('div');card.className='sheet-card';
+    card.style.borderColor=s.border;
+    card.innerHTML=`<div class="sheet-head" style="background:${s.bg};color:${s.color};border-bottom:1px solid ${s.border}">${s.title}</div><div class="sheet-body" style="background:${s.bg}">${s.content}</div>`;
+    grid.appendChild(card);
+  });
+})();
+
+// ===================== NAV ACTIVE HIGHLIGHTING ON SCROLL =====================
+(function(){
+  const tabs=document.querySelectorAll('.tab');
+  const sections=[
+    {id:'home-top',hash:'#home-top'},
+    {id:'section-chart',hash:'#section-chart'},
+    {id:'section-molecules',hash:'#section-molecules'},
+    {id:'section-chemistry',hash:'#section-chemistry'},
+    {id:'section-cer',hash:'#section-cer'},
+    {id:'section-quiz',hash:'#section-quiz'},
+    {id:'section-polarity',hash:'#section-polarity'},
+    {id:'section-simulator',hash:'#section-simulator'},
+    {id:'section-error',hash:'#section-error'},
+    {id:'section-realworld',hash:'#section-realworld'},
+    {id:'section-bigidea',hash:'#section-bigidea'},
+    {id:'section-study',hash:'#section-study'},
+  ];
+
+  function updateActive(){
+    let current='#home-top';
+    sections.forEach(s=>{
+      const el=document.getElementById(s.id);
+      if(el&&el.getBoundingClientRect().top<=80)current=s.hash;
+    });
+    tabs.forEach(t=>{t.classList.toggle('active',t.getAttribute('href')===current);});
+  }
+
+  window.addEventListener('scroll',updateActive,{passive:true});
+  updateActive();
+})();
+</script>
+</body>
+</html>
